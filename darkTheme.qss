@@ -1,0 +1,129 @@
+/* dark_theme.qss */
+
+
+SinePlot {
+    background-color: rgb(54, 157, 180);
+}
+/* Минимизировать кнопку `Максимальное выключение` Общий фон по умолчанию */
+
+QPushButton {
+    background-color: #2e2e2e; /* Темный фон */
+    color: #ffffff; /* Белый текст */
+    border: 1px solid #444444; /* Темная граница */
+    border-radius: 25px; /* Скругление углов */
+    padding: 10px; /* Отступы внутри кнопки */
+}
+
+QPushButton:hover {
+    background-color: #3c3c3c; /* Светлее при наведении */
+}
+
+QPushButton:pressed {
+    background-color: #4a4a4a; /* Еще светлее при нажатии */
+}
+
+
+QWidget {
+    background-color: #2E2E2E;  /* Цвет фона для виджетов */
+    color: #b8bcbe;              /* Цвет текста */
+}
+
+QGroupBox {
+    border: 3px solid #444444;   
+               
+                 
+    padding: 10px; 
+    padding-top: 25px; 
+
+    border-radius: 15px;
+    font-size: 22px;
+}
+
+QGroupBox::title {
+
+}
+
+
+QSlider {
+    background: #2E2E2E;     
+}
+
+
+
+QSlider::groove:horizontal { 
+	background-color: #4E4E4E;
+	border: 0px solid #424242; 
+	height: 10px; 
+	border-radius: 4px;
+}
+
+QSlider::handle:horizontal { 
+
+    background: CornflowerBlue;         
+  
+	border: 2px solid CornflowerBlue; 
+	width: 16px; 
+	height: 20px; 
+	line-height: 20px; 
+	margin-top: -5px; 
+	margin-bottom: -5px; 
+	border-radius: 10px; 
+}
+
+QSlider::handle:horizontal:hover { 
+	border-radius: 10px;
+}
+
+
+
+QLabel {
+    color: #FFFFFF;              /* Цвет текста меток */
+}
+
+QPushButton {
+    background-color: #007ACC;   /* Цвет кнопки */
+    color: #FFFFFF;              /* Цвет текста кнопки */
+    padding: 5px;                /* Внутренние отступы */
+    border: none;                /* Без рамки */
+}
+
+QPushButton:hover {
+    background-color: #005B99;   /* Цвет кнопки при наведении */
+}
+
+
+/* Настройка цветов для Matplotlib */
+.matplotlib-spine {
+    color: red;              /* Цвет рамки (осей) */
+}
+
+.matplotlib-label {
+    color: red;              /* Цвет подписей (осей) */
+}
+
+.matplotlib-tick {
+    color: red;              /* Цвет подписей значений по осям */
+}
+
+.matplotlib-grid {
+    color: red;   /* Цвет сетки для всех осей */
+}
+
+QTabWidget::pane {
+    background-color: #3C3C3C; /* Цвет фона для вкладок */
+    border: 3px solid #444444;   
+    border-radius: 10px;  
+}
+
+QTabBar::tab {
+    background-color: #3C3C3C; /* Цвет фона вкладки */
+    color: #FFFFFF; /* Цвет текста вкладки */
+    padding: 10px;
+    border-radius: 10px;  
+    width: 150px;
+
+}
+
+QTabBar::tab:selected {
+    background-color: #4A4A4A; /* Цвет выбранной вкладки */
+}
