@@ -30,7 +30,7 @@ QWidget {
 
 QGroupBox {
     border: 3px solid #444444;   
-               
+    color: #b5b5b5; /* Цвет текста вкладки */               
                  
     padding: 10px; 
     padding-top: 25px; 
@@ -117,10 +117,16 @@ QTabWidget::pane {
 
 QTabBar::tab {
     background-color: #3C3C3C; /* Цвет фона вкладки */
-    color: #FFFFFF; /* Цвет текста вкладки */
+    color: #b5b5b5; /* Цвет текста вкладки */
     padding: 10px;
+    margin-right: 10px;
+    margin-bottom: 10px;
     border-radius: 10px;  
     width: 150px;
+    height: 30px;
+    border: 3px solid #444444;  
+    font-size: 25px;
+
 
 }
 

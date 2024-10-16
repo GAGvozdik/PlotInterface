@@ -1,25 +1,27 @@
 from PyQt5.QtWidgets import QApplication
 import numpy as np
 import sys
-from examples import Example4
+from examples import PlotInterface
+from examples import Example5
+import matplotlib.pyplot as plt
 import skgstat as skg
+from matplotlib.colors import ListedColormap
+import pandas as pd
+# https://scikit-gstat.readthedocs.io/en/latest/install.html
 
-class MainApp(Example4):
+class Example1(PlotInterface):
     def __init__(self):
         super().__init__()
-
-        self.tab5 = self.createTab('Ex5')
-        self.ax51 = self.createAxes(111, 'plot 1', 'x', 'y', True, self.tabAtr('Ex5Figure'))
 
 
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
-    with open("darkTheme.qss", "r") as f:
+    with open("styles/darkTheme.qss", "r") as f:
         style = f.read()
         app.setStyleSheet(style)
 
-    window = MainApp()
+    window = Example3()
     window.show()
     sys.exit(app.exec_())
