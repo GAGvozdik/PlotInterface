@@ -1,18 +1,27 @@
 from PyQt5.QtWidgets import QApplication
 import numpy as np
 import sys
-from examples import PlotInterface
-from examples import Example5
+from classes.examples import AllExamples
 import matplotlib.pyplot as plt
-import skgstat as skg
 from matplotlib.colors import ListedColormap
 import pandas as pd
 # https://scikit-gstat.readthedocs.io/en/latest/install.html
 
-class Example1(PlotInterface):
+class MainApp(AllExamples):
     def __init__(self):
         super().__init__()
 
+        self.tab1 = self.createTab('Main')
+
+        self.ax8 = self.createAxes(self.tabAtr('MainFigure'),
+            args={
+                'pos': 111, 
+                'name': 'Variogram',
+                'xAxName': '', 
+                'yAxName': '',
+                'grid': False
+            }
+        )
 
 
 if __name__ == "__main__":
@@ -22,6 +31,6 @@ if __name__ == "__main__":
         style = f.read()
         app.setStyleSheet(style)
 
-    window = Example3()
+    window = MainApp()
     window.show()
     sys.exit(app.exec_())

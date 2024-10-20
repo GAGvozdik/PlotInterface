@@ -5,6 +5,8 @@ __pycache__/
 
 workEnv/
 test.py
+classes/__pycache__/
+examples/
 # C extensions
 *.so
 
