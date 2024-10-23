@@ -1,7 +1,5 @@
 from .interface import PlotInterface
 from PyQt5.QtWidgets import QApplication
-import numpy as np
-import sys
 import pandas as pd
 
 class Example6(PlotInterface):
@@ -28,18 +26,7 @@ class Example6(PlotInterface):
 
         y =  data["Y"]
 
-        self.ax6.plot(y, EC, marker="x", label="raw data", )    
-        self.ax6.plot(y, EC_smooth, label="rolling mean")    
+        self.ax6.plot(y, EC, marker="x", color='Crimson', label="raw data", linewidth=2, zorder=4)    
+        self.ax6.plot(y, EC_smooth, color='orange', label="rolling mean", zorder=5)    
 
         self.ax6.legend()
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-
-    with open("styles/darkTheme.qss", "r") as f:
-        style = f.read()
-        app.setStyleSheet(style)
-
-    window = Example6()
-    window.show()
-    sys.exit(app.exec_())

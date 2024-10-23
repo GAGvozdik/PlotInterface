@@ -7,24 +7,12 @@ from .example4 import Example4
 from .example5 import Example5
 from .example6 import Example6
 from .example7 import Example7
-from PyQt5.QtWidgets import QApplication
-import sys
+from .example8 import Example8
+from .example9 import Example9
 
-
-class AllExamples(Example7, Example6, Example5, Example4, Example3, Example2, Example1):
+class AllExamples(Example9, Example8, Example7, Example6, Example5, Example4, Example2):
     def __init__(self):
         super().__init__()
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-
-    with open("styles/darkTheme.qss", "r") as f:
-        style = f.read()
-        app.setStyleSheet(style)
-
-    window = AllExamples()
-    window.show()
-    sys.exit(app.exec_())
 
 
 

@@ -1,8 +1,7 @@
 from .interface import PlotInterface
-from PyQt5.QtWidgets import QApplication
 import numpy as np
-import sys
 import pandas as pd
+import time
 
 class Example7(PlotInterface):
     def __init__(self):
@@ -10,79 +9,66 @@ class Example7(PlotInterface):
 
         self.tab7 = self.createTab('Ex7')
 
-        self.slider7 = self.createSlider(1, 100, 1, func=self.updateWindowSize, name='Window size', tab=self.tab7)
+        self.slider7 = self.createSlider(1, 50, init=1, 
+            func=self.updateWindowSize, 
+            name='Window size', 
+            tab=self.tab7, 
+            label=True
+        )
         self.addToBox(self.tabAtr('Ex7SliderBox'), self.slider7)
 
-        self.ax71 = self.createAxes(self.tabAtr('Ex7Figure'),
-            args={
-                'pos': 121, 
-                'name': "Moving average",
-                'xAxName': '$x$ [m]', 
-                'yAxName': '',
-                'grid': False
-            }
+        self.qdial7 = self.createQDial(1, 50, init=1, 
+            func=self.updateWindowSize, 
+            name='Window size', 
+            tab=self.tab7, 
+            label=True
         )
+        self.addToBox(self.tabAtr('Ex7SliderBox'), self.qdial7)
 
-        self.ax72 = self.createAxes(self.tabAtr('Ex7Figure'),
-            args={
-                'pos': 122, 
-                'name': "Standard deviation",
-                'xAxName': '$x$ [m]', 
-                'yAxName': '',
-                'grid': False
-            }
-        )
-
-        data_file = "data/walker_exhaustive.dat"
-        data = pd.read_csv(data_file)
+        data = pd.read_csv("data/walker_exhaustive.dat")
 
         self.V = data["V"].values.reshape((300, 260))
-
         self.winsize = 10
-        Vma, Vms = self.moving(self.V, self.winsize)
 
-        self.im_ma = self.ax71.imshow(Vma, origin="lower", cmap="terrain")
-        self.im_ms = self.ax72.imshow(Vms, origin="lower", cmap="magma")
+        self.last_method_time = 0
 
-        self.createColorbar(
-            self.tabAtr('Ex7Figure'), 
-            self.im_ma, 
-            name='V', 
-            cmap='terrain'
+        self.Vma = []
+        self.Vms = []
+
+        for i in range(51):
+            Vma, Vms = self.moving(self.V, i + 1)
+            self.Vma.append(Vma)
+            self.Vms.append(Vms)
+
+        self.redrawEx7()
+
+    def update_histogram(self, data):
+
+        if hasattr(self, 'hist7'):
+            for patch in self.hist7[2]:
+                patch.remove()
+
+        binsWidth = 1
+        if self.winsize < 7:
+            binsWidth = 80 / int(data.size / 25)
+
+        self.hist7 = self.ax73.hist(
+            data, 
+            bins=int(data.size / 25), 
+            color='Crimson', 
+            zorder=2, 
+            edgecolor="black", 
+            linewidth=binsWidth
         )
-
-        self.createColorbar(
-            self.tabAtr('Ex7Figure'), 
-            self.im_ms, 
-            name='V', 
-            cmap='magma'
-        )
-
-    def moving(self, data, size):
-
-        Ni, Nj = data.shape
-
-        Nii = int(Ni/size)
-        Njj = int(Nj/size)
-
-        mea = np.zeros((Nii, Njj))
-        std = np.zeros((Nii, Njj))
-
-        for i in range(Nii):
-            for j in range(Njj):
-                win = data[i*size:(i+1)*size,j*size:(j+1)*size]
-                mea[i,j] = np.mean(win)
-                std[i,j] = np.std(win)
-        return mea, std    
-
-    @PlotInterface.canvasDraw(tab='Ex7')
-    def updateWindowSize(self, index):
         
+
+
+    def redrawEx7(self):
         self.tabAtr('Ex7Figure').clf()
 
         self.ax71 = self.createAxes(self.tabAtr('Ex7Figure'),
             args={
-                'pos': 121, 
+                'pos': 221, 
                 'name': "Moving average",
                 'xAxName': '$x$ [m]', 
                 'yAxName': '',
@@ -92,7 +78,7 @@ class Example7(PlotInterface):
 
         self.ax72 = self.createAxes(self.tabAtr('Ex7Figure'),
             args={
-                'pos': 122, 
+                'pos': 222, 
                 'name': "Standard deviation",
                 'xAxName': '$x$ [m]', 
                 'yAxName': '',
@@ -100,11 +86,23 @@ class Example7(PlotInterface):
             }
         )
 
-        self.winsize = index
-        Vma, Vms = self.moving(self.V, self.winsize)
+        self.ax73 = self.createAxes(self.tabAtr('Ex7Figure'),
+            args={
+                'pos': 224, 
+                'name': "",
+                'xAxName': '', 
+                'yAxName': '',
+                'grid': False
+            }
+        )
+        self.ax73.set_ylim(0, 150)
 
-        self.im_ma = self.ax71.imshow(Vma, origin="lower", cmap="terrain")
-        self.im_ms = self.ax72.imshow(Vms, origin="lower", cmap="magma")
+        self.ax73.set_position([0.22, 0.1, 0.2, 0.35]) 
+
+        self.im_ma = self.ax71.imshow(self.Vma[self.winsize], origin="lower", cmap="terrain")
+        self.im_ms = self.ax72.imshow(self.Vms[self.winsize], origin="lower", cmap="magma")
+
+        self.update_histogram(np.ravel(self.Vma[self.winsize]))
 
         self.createColorbar(
             self.tabAtr('Ex7Figure'), 
@@ -120,13 +118,40 @@ class Example7(PlotInterface):
             cmap='magma'
         )
 
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
+    @PlotInterface.canvasDraw(tab='Ex7')
+    def updateWindowSize(self, index):
+        self.winsize = index
 
-    with open("styles/darkTheme.qss", "r") as f:
-        style = f.read()
-        app.setStyleSheet(style)
+        self.tabAtr('Window size Slider Label').setText(str(index))
+        self.tabAtr('Window size QDial Label').setText(str(index))
 
-    window = Example7()
-    window.show()
-    sys.exit(app.exec_())
+        self.redrawEx7()
+
+
+
+    def moving(self, data, size):
+
+        start_time = time.time() 
+
+        Ni, Nj = data.shape
+        Nii = int(Ni / size)
+        Njj = int(Nj / size)
+
+        # Обрезка массива
+        Ni_new = Nii * size
+        Nj_new = Njj * size
+        data_trimmed = data[:Ni_new, :Nj_new] 
+
+        # Переформатирование и вычисление среднего и стандартного отклонения
+        data_reshaped = data_trimmed.reshape(Nii, size, Njj, size)
+        mea = np.mean(data_reshaped, axis=(1, 3)) 
+        std = np.std(data_reshaped, axis=(1, 3)) 
+
+        end_time = time.time()
+        method_time = end_time - start_time
+
+        if method_time > self.last_method_time:
+            print(f"Время работы метода moving: {method_time:.4f} секунд")
+            self.last_method_time = method_time
+
+        return mea, std

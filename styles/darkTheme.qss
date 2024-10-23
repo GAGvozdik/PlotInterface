@@ -4,7 +4,12 @@
 SinePlot {
     background-color: rgb(54, 157, 180);
 }
-/* Минимизировать кнопку `Максимальное выключение` Общий фон по умолчанию */
+
+QLabel {
+    font-family: Arial;
+    font-size: 16px;
+    color: #b5b5b5;
+}
 
 QPushButton {
     background-color: #2e2e2e; /* Темный фон */

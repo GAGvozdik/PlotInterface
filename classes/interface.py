@@ -1,17 +1,14 @@
 import sys
-import numpy as np
-from PyQt5.QtWidgets import QApplication, QWidget, QTabWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QSlider, QGridLayout, QGroupBox, QDial
+from PyQt5.QtWidgets import QApplication, QWidget, QTabWidget, QPushButton, QVBoxLayout, QBoxLayout
+from PyQt5.QtWidgets import QHBoxLayout, QLabel, QSlider, QGridLayout, QGroupBox, QDial
 from PyQt5.QtCore import Qt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure 
-from matplotlib.colors import ListedColormap
 from .graphObjects import GraphObjects
 
 class PlotInterface(GraphObjects):
     def __init__(self):
         super().__init__()  
         
-        self.setWindowTitle("Sine Function Slider")
+        self.setWindowTitle("Module plot interface")
         self.setGeometry(500, 130, 1800, 1100) # (x, y, width, height)
         self.layout = QGridLayout()
         self.setLayout(self.layout)
@@ -20,7 +17,6 @@ class PlotInterface(GraphObjects):
         self.layout.addWidget(self.tabs, 0, 0)       
 
         self.windowColor = '#2E2E2E'   
-        self.gridColor = '#6e6e6e'
         self.widgetColor = '#6e6e6e'
         self.graphColor = '#4c4c4c'
         self.ticksColor = '#b5b5b5'
@@ -39,33 +35,52 @@ class PlotInterface(GraphObjects):
 
         figure, canvas = self.createFigure(name, graphBox)
 
+        setattr(self, f"{name}Figure", figure)
+        setattr(self, f"{name}Canvas", canvas)
+
         return layout
 
     def tabAtr(self, name):
         return getattr(self, f"{name}")
 
-    def createSlider(self, min, max, init, tab, func='none', name=''):
-        sliderBox = self.createBox(tab, name, size=[240, 100])
+    def createSlider(self, min, max, tab, init=0, func='none', name='', label=False):
+        sliderBox = self.createBox(tab, name, size=[240, 100], v=False)
         slider = QSlider(Qt.Horizontal)
         slider.setMinimum(min)
         slider.setMaximum(max)
         slider.setValue(init)
+        slider.setSingleStep(1)
         if func != 'none':
             slider.valueChanged.connect(func)
         self.addToBox(sliderBox, slider)
 
+        if label:
+            label = QLabel(str(init))
+            setattr(self, f"{name} Slider Label", label)
+            self.addToBox(sliderBox, self.tabAtr(f"{name} Slider Label"))
+
+        setattr(self, f"{name} slider", slider)
         return sliderBox
 
-    def createQDial(self, min, max, init, tab, func='none', name=''):
-        dialBox = self.createBox(tab, name, size=[240, 200])
+    def createQDial(self, min, max, init, tab, func='none', name='', label=False):
+        dialBox = self.createBox(tab, name, size=[240, 250])
         dial = QDial(self)
         dial.move(30, 50)
+        dial.setFixedSize(190, 150)
         dial.setRange(min, max)
+        dial.setSingleStep(1)
+
         if func != 'none':
             dial.valueChanged.connect(func)
+
         self.addToBox(dialBox, dial)
+        if label:
+            label = QLabel(str(init))
+            setattr(self, f"{name} QDial Label", label)
+            self.addToBox(dialBox, self.tabAtr(f"{name} QDial Label"))
+
         return dialBox
-    
+
     def createBox(self, tab, title='', position=[], size=['none', 'none'], v=True):
         box = QGroupBox(title)
 
@@ -76,10 +91,13 @@ class PlotInterface(GraphObjects):
         elif isinstance(size[0], int) and isinstance(size[1], int):
             box.setFixedSize(size[0], size[1]) 
 
+
         tab.addWidget(box, *position)
 
-        if v:
+        if v == True:
             box.setLayout(QVBoxLayout())
+        elif v == 'center':
+            box.setLayout(QBoxLayout(QBoxLayout.LeftToRight))
         else:
             box.setLayout(QHBoxLayout())
 

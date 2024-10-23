@@ -1,7 +1,5 @@
 from .interface import PlotInterface
-from PyQt5.QtWidgets import QApplication
 import numpy as np
-import sys
 from matplotlib.colors import LinearSegmentedColormap
 
 # INTERFACE 5
@@ -31,6 +29,7 @@ class Example5(PlotInterface):
                 'grid': False
             }
         )
+        
 
         file = open('data/data.csv', 'r')
 
@@ -64,13 +63,3 @@ class Example5(PlotInterface):
             cmap=self.scatterArgs5['cmap']
         )
 
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-
-    with open("styles/darkTheme.qss", "r") as f:
-        style = f.read()
-        app.setStyleSheet(style)
-
-    window = Example5()
-    window.show()
-    sys.exit(app.exec_())
