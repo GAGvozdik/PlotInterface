@@ -5,17 +5,20 @@ import numpy as np
 class Example2(PlotInterface):
     def __init__(self):
         super().__init__()
-        self.tab2 = self.createTab('Ex2')
-        #TODO set ax limit
-        #TODO add qdial label
+        self.tab02 = self.createTab('Ex02')
 
+        self.qdial02 = self.createQDial(
+            10, 
+            250, 
+            10, 
+            func=self.updateBins02, 
+            name='bins', 
+            tab=self.tab02, 
+            label=True
+        )
 
-        self.qdial2 = self.createQDial(10, 250, 10, func=self.updateBins, name='bins', tab=self.tab2, label=True)
-        self.addToBox(self.tabAtr('Ex2SliderBox'), self.qdial2)
-
-        self.histData = np.array(np.random.normal(0, 1, 10000))
-
-        self.ax21 = self.createAxes(self.tabAtr('Ex2Figure'),
+        self.ax02_1 = self.createAxes(
+            self.tabAtr('Ex02Figure'),
             args={
                 'pos': 111, 
                 'name': 'plot 1',
@@ -24,17 +27,17 @@ class Example2(PlotInterface):
                 'grid': True
             }
         )
+        self.ax02_1.set_ylim(0, 3000)
 
-        self.ax21.set_ylim(0, 3000)
+        self.histData02 = np.array(np.random.normal(0, 1, 10000))
+        self.hist02 = self.ax02_1.hist(self.histData02, bins=10, color='Crimson', zorder=2, edgecolor="black")
 
-        self.hist1 = self.ax21.hist(self.histData, bins=10, color='Crimson', zorder=2, edgecolor="black")
-
-    @PlotInterface.canvasDraw(tab='Ex2')
-    def updateBins(self, index):
-        for patch in self.hist1[2]: 
+    @PlotInterface.canvasDraw(tab='Ex02')
+    def updateBins02(self, index):
+        for patch in self.hist02[2]: 
             patch.remove()  
             
-        self.hist1 = self.ax21.hist(self.histData, bins=index, color='Crimson', zorder=2, edgecolor="black")
+        self.hist02 = self.ax02_1.hist(self.histData02, bins=index, color='Crimson', zorder=2, edgecolor="black")
         
         self.tabAtr('bins QDial Label').setText(str(index))
 

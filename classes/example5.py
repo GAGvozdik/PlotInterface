@@ -7,36 +7,28 @@ class Example5(PlotInterface):
     def __init__(self):
         super().__init__()
 
-        self.tab5 = self.createTab('Ex5')
+        self.tab05 = self.createTab('Ex05')
 
-        self.ax51 = self.createAxes(self.tabAtr('Ex5Figure'),
-            args={
-                'pos': 121, 
-                'name': 'V [ppm]',
-                'xAxName': '$x$ [m]', 
-                'yAxName': '$y$ [m]',
-                'grid': True
-            }
-        )
-        self.ax51.set_aspect(1)
+        axArgs = { 
+            'name': 'V [ppm]',
+            'xAxName': '$x$ [m]', 
+            'yAxName': '$y$ [m]',
+            'grid': True
+        }
 
-        self.ax52 = self.createAxes(self.tabAtr('Ex5Figure'),
-            args={
-                'pos': 122, 
-                'name': 'V [ppm]',
-                'xAxName': '$x$ [m]', 
-                'yAxName': '$y$ [m]',
-                'grid': False
-            }
-        )
-        
+        axArgs['pos'] = 121
+        ax05_1 = self.createAxes(self.tabAtr('Ex05Figure'), args=axArgs)
+        ax05_1.set_aspect(1)
+
+        axArgs['pos'] = 122
+        ax05_2 = self.createAxes(self.tabAtr('Ex05Figure'), args=axArgs)
 
         file = open('data/data.csv', 'r')
 
         x, y, V, U = np.loadtxt(file, unpack=True)
         cmap = LinearSegmentedColormap.from_list("white_to_Crimson", ["white", "Crimson"])
 
-        self.scatterArgs5 = {
+        scatterArgs05 = {
             'x': x,
             'y': y,
             'c': V,
@@ -45,21 +37,20 @@ class Example5(PlotInterface):
             'zorder': 2
         }
 
-        self.scatterPoints5 = self.plotScatter(self.ax51, self.scatterArgs5)
+        scatterPoints05 = ax05_1.scatter(**scatterArgs05)
 
         self.createColorbar(
-            self.tabAtr('Ex5Figure'), 
-            self.scatterPoints5, 
+            self.tabAtr('Ex05Figure'), 
+            scatterPoints05, 
             name='V', 
-            cmap=self.scatterArgs5['cmap']
+            cmap=scatterArgs05['cmap']
         )
 
-        self.pict = self.ax52.imshow(V.reshape(10, 10), cmap=cmap)
+        pict = ax05_2.imshow(V.reshape(10, 10), cmap=cmap, zorder=3)
 
         self.createColorbar(
-            self.tabAtr('Ex5Figure'), 
-            self.pict, 
+            self.tabAtr('Ex05Figure'), 
+            pict, 
             name='V', 
-            cmap=self.scatterArgs5['cmap']
+            cmap=scatterArgs05['cmap']
         )
-

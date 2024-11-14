@@ -27,42 +27,14 @@ class GraphObjects(QWidget):
 
         return cbar
 
-    def plotLine(self, ax,
-            args = {
-                'x': None,
-                'y': None,
-                'type': '-b',
-                'color': 'orange',
-                'lineWidth': 2.5,
-                'zorder': 0,
-            }):
-        line, = ax.plot(**args)
-        return line
-
-    def plotScatter(self, ax,
-            args = {
-                'x': None,
-                'y': None,
-                'c': 'Crimson',
-                'zorder': None,
-                's': 80,
-                'cmap': None
-            }):
-        return ax.scatter(**args)
     
-    def createAxes(self, fig, 
-            args={
-                'pos': None, 
-                'name': '', 
-                'xAxName': '', 
-                'yAxName': '',  
-                'grid': False
-            }):
+    def createAxes(self, fig, args):
 
-        ax = fig.add_subplot(args['pos'])
-        ax.set_title(args['name'], color=self.ticksColor, fontsize = 20, y=1.02)
-        ax.set_xlabel(args['xAxName'], color=self.ticksColor, fontsize = 15)
-        ax.set_ylabel(args['yAxName'], color=self.ticksColor, fontsize = 15)
+        if 'pos' in args:  ax = fig.add_subplot(args['pos'])
+        if 'name' in args:  ax.set_title(args['name'], color=self.ticksColor, fontsize = 20, y=1.02)
+        if 'xAxName' in args:  ax.set_xlabel(args['xAxName'], color=self.ticksColor, fontsize = 15)
+        if 'yAxName' in args:  ax.set_ylabel(args['yAxName'], color=self.ticksColor, fontsize = 15)
+        
         ax.set_facecolor(self.graphColor)
         
         ax.spines[:].set_color(self.widgetColor)
@@ -71,8 +43,7 @@ class GraphObjects(QWidget):
         ax.tick_params(axis='x', labelcolor=self.ticksColor, color=self.widgetColor, width=2.5, length=6, labelsize=12) 
         ax.tick_params(axis='y', labelcolor=self.ticksColor, color=self.widgetColor, width=2.5, length=6, labelsize=12)
 
-        if args['grid']:
-            ax.grid(True, color=self.widgetColor)
+        if 'grid' in args:  ax.grid(True, color=self.widgetColor)
 
         return ax
     
@@ -123,7 +94,7 @@ class GraphObjects(QWidget):
         figure.patch.set_facecolor(self.windowColor)
         figure.subplots_adjust(wspace=0.4, hspace=0.5)
 
-        canvas = FigureCanvas(figure)
+        canvas = figure.canvas
         self.addToBox(canvasBox, canvas)
 
         return figure, canvas
@@ -136,3 +107,4 @@ class GraphObjects(QWidget):
                 return result
             return wrapper
         return decorator
+    

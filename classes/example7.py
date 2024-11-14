@@ -1,34 +1,27 @@
 from .interface import PlotInterface
 import numpy as np
 import pandas as pd
-import time
 
 class Example7(PlotInterface):
     def __init__(self):
         super().__init__()
 
-        self.tab7 = self.createTab('Ex7')
+        self.tab07 = self.createTab('Ex07')
 
-        self.slider7 = self.createSlider(1, 50, init=1, 
-            func=self.updateWindowSize, 
+        self.qdial07 = self.createQDial(
+            1, 
+            50, 
+            init=1, 
+            func=self.updateWindowSize07, 
             name='Window size', 
-            tab=self.tab7, 
+            tab=self.tab07, 
             label=True
         )
-        self.addToBox(self.tabAtr('Ex7SliderBox'), self.slider7)
-
-        self.qdial7 = self.createQDial(1, 50, init=1, 
-            func=self.updateWindowSize, 
-            name='Window size', 
-            tab=self.tab7, 
-            label=True
-        )
-        self.addToBox(self.tabAtr('Ex7SliderBox'), self.qdial7)
 
         data = pd.read_csv("data/walker_exhaustive.dat")
 
         self.V = data["V"].values.reshape((300, 260))
-        self.winsize = 10
+        self.winsize = 1
 
         self.last_method_time = 0
 
@@ -40,19 +33,19 @@ class Example7(PlotInterface):
             self.Vma.append(Vma)
             self.Vms.append(Vms)
 
-        self.redrawEx7()
+        self.redrawEx07()
 
     def update_histogram(self, data):
 
-        if hasattr(self, 'hist7'):
-            for patch in self.hist7[2]:
+        if hasattr(self, 'hist07'):
+            for patch in self.hist07[2]:
                 patch.remove()
 
         binsWidth = 1
         if self.winsize < 7:
             binsWidth = 80 / int(data.size / 25)
 
-        self.hist7 = self.ax73.hist(
+        self.hist07 = self.ax07_3.hist(
             data, 
             bins=int(data.size / 25), 
             color='Crimson', 
@@ -60,98 +53,76 @@ class Example7(PlotInterface):
             edgecolor="black", 
             linewidth=binsWidth
         )
-        
 
+    def redrawEx07(self):
+        self.tabAtr('Ex07Figure').clf()
 
-    def redrawEx7(self):
-        self.tabAtr('Ex7Figure').clf()
+        self.drawAxes07()
 
-        self.ax71 = self.createAxes(self.tabAtr('Ex7Figure'),
-            args={
-                'pos': 221, 
-                'name': "Moving average",
-                'xAxName': '$x$ [m]', 
-                'yAxName': '',
-                'grid': False
-            }
-        )
-
-        self.ax72 = self.createAxes(self.tabAtr('Ex7Figure'),
-            args={
-                'pos': 222, 
-                'name': "Standard deviation",
-                'xAxName': '$x$ [m]', 
-                'yAxName': '',
-                'grid': False
-            }
-        )
-
-        self.ax73 = self.createAxes(self.tabAtr('Ex7Figure'),
-            args={
-                'pos': 224, 
-                'name': "",
-                'xAxName': '', 
-                'yAxName': '',
-                'grid': False
-            }
-        )
-        self.ax73.set_ylim(0, 150)
-
-        self.ax73.set_position([0.22, 0.1, 0.2, 0.35]) 
-
-        self.im_ma = self.ax71.imshow(self.Vma[self.winsize], origin="lower", cmap="terrain")
-        self.im_ms = self.ax72.imshow(self.Vms[self.winsize], origin="lower", cmap="magma")
+        self.im_ma = self.ax07_1.imshow(self.Vma[self.winsize], origin="lower", cmap="terrain")
+        self.im_ms = self.ax07_2.imshow(self.Vms[self.winsize], origin="lower", cmap="magma")
 
         self.update_histogram(np.ravel(self.Vma[self.winsize]))
 
         self.createColorbar(
-            self.tabAtr('Ex7Figure'), 
+            self.tabAtr('Ex07Figure'), 
             self.im_ma, 
             name='V', 
             cmap='terrain'
         )
 
         self.createColorbar(
-            self.tabAtr('Ex7Figure'), 
+            self.tabAtr('Ex07Figure'), 
             self.im_ms, 
             name='V', 
             cmap='magma'
         )
 
-    @PlotInterface.canvasDraw(tab='Ex7')
-    def updateWindowSize(self, index):
+    @PlotInterface.canvasDraw(tab='Ex07')
+    def updateWindowSize07(self, index):
         self.winsize = index
-
-        self.tabAtr('Window size Slider Label').setText(str(index))
         self.tabAtr('Window size QDial Label').setText(str(index))
-
-        self.redrawEx7()
-
+        self.redrawEx07()
 
 
+    @PlotInterface.getWorkTime('moving')
     def moving(self, data, size):
-
-        start_time = time.time() 
 
         Ni, Nj = data.shape
         Nii = int(Ni / size)
         Njj = int(Nj / size)
 
-        # Обрезка массива
         Ni_new = Nii * size
         Nj_new = Njj * size
         data_trimmed = data[:Ni_new, :Nj_new] 
 
-        # Переформатирование и вычисление среднего и стандартного отклонения
         data_reshaped = data_trimmed.reshape(Nii, size, Njj, size)
         mea = np.mean(data_reshaped, axis=(1, 3)) 
         std = np.std(data_reshaped, axis=(1, 3)) 
 
-        end_time = time.time()
-        method_time = end_time - start_time
-
-        if method_time > self.last_method_time:
-            print(f"Время работы метода moving: {method_time:.4f} секунд")
-            self.last_method_time = method_time
-
         return mea, std
+    
+    def drawAxes07(self):
+
+        axArgs = {
+            'xAxName': '$x$ [m]', 
+            'yAxName': '',
+        }
+
+        axArgs['pos'], axArgs['name'] = 221, "Moving average"
+        self.ax07_1 = self.createAxes(self.tabAtr('Ex07Figure'), args=axArgs)
+        self.ax07_1.set_position([0.05, 0.55, 0.4, 0.4])
+
+        axArgs['pos'], axArgs['name'] = 222, "Standard deviation"
+        self.ax07_2 = self.createAxes(self.tabAtr('Ex07Figure'), args=axArgs)
+        self.ax07_2.set_position([0.55, 0.55, 0.4, 0.4]) 
+
+        axArgs['pos'], axArgs['name'], axArgs['grid'] = 223, "Hist", True
+        self.ax07_3 = self.createAxes(self.tabAtr('Ex07Figure'), args=axArgs)
+        self.ax07_3.set_ylim(0, 150)
+        self.ax07_3.set_xlim(-50, 1300)
+        self.ax07_3.set_position([0.36, 0.06, 0.35, 0.4]) 
+
+
+
+

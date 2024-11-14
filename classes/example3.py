@@ -5,72 +5,37 @@ class Example3(PlotInterface):
     def __init__(self):
         super().__init__()
 
-        self.tab3 = self.createTab('Ex3')
-        
-        self.ax31 = self.createAxes(self.tabAtr('Ex3Figure'),
-            args={
-                'pos': 231, 
-                'name': 'plot 1',
-                'xAxName': 'x', 
-                'yAxName': 'y',
-                'grid': True
-            }
-        )
-        self.ax31.set_aspect(1)
-        
-        self.ax32 = self.createAxes(self.tabAtr('Ex3Figure'),
-            args={
-                'pos': 232, 
-                'name': 'plot 2',
-                'xAxName': 'x', 
-                'yAxName': 'y',
-                'grid': True
-            }
-        )
-        self.ax32.set_aspect(5)
+        self.tab03 = self.createTab('Ex03')
+        self.createAxes03()
 
-        self.ax33 = self.createAxes(self.tabAtr('Ex3Figure'),
-            args={
-                'pos': 233, 
-                'name': 'plot 3',
-                'xAxName': 'x', 
-                'yAxName': 'y',
-                'grid': True
-            }
-        )
-        self.ax33.set_aspect(5)
+    def createAxes03(self):
+        axArgs = {
+            'xAxName': 'x', 
+            'yAxName': 'y',
+        }
 
-        self.ax34 = self.createAxes(self.tabAtr('Ex3Figure'),
-            args={
-                'pos': 234, 
-                'name': 'plot 4',
-                'xAxName': 'x', 
-                'yAxName': 'y',
-                'grid': True
-            }
-        )
-        self.ax34.set_aspect(0.5)
+        axArgs['pos'], axArgs['name'] = 231, 'data1'
+        self.ax03_1 = self.createAxes(self.tabAtr('Ex03Figure'), args=axArgs)
+        self.ax03_1.set_aspect(1)
 
-        self.ax35 = self.createAxes(self.tabAtr('Ex3Figure'),
-            args={
-                'pos': 235, 
-                'name': 'plot 5',
-                'xAxName': 'x', 
-                'yAxName': 'y',
-                'grid': True
-            }
-        )
-        self.ax35.set_aspect(0.25)
+        axArgs['pos'], axArgs['name'] = 232, 'data2'
+        self.ax03_2 = self.createAxes(self.tabAtr('Ex03Figure'), args=axArgs)
+        self.ax03_2.set_aspect(5)
 
-        self.ax36 = self.createAxes(self.tabAtr('Ex3Figure'),
-            args={
-                'pos': 236, 
-                'name': 'plot 6',
-                'xAxName': 'x', 
-                'yAxName': 'y',
-                'grid': True
-            }
-        )
-        self.ax36.set_aspect(1)
+        axArgs['pos'], axArgs['name'] = 233, 'data3'
+        self.ax03_3 = self.createAxes(self.tabAtr('Ex03Figure'), args=axArgs)
+        self.ax03_3.set_aspect(5)
+
+        axArgs['pos'], axArgs['name'], axArgs['grid'] = 234, 'data4', True
+        self.ax03_4 = self.createAxes(self.tabAtr('Ex03Figure'), args=axArgs)
+        self.ax03_4.set_aspect(0.5)
+
+        axArgs['pos'], axArgs['name'], axArgs['xAxName'], axArgs['yAxName'] = 235, 'data5', 'x[m]', 'y[m]'
+        self.ax03_5 = self.createAxes(self.tabAtr('Ex03Figure'), args=axArgs)
+        self.ax03_5.set_aspect(0.25)
+
+        axArgs['pos'], axArgs['name'] = 236, 'data6'
+        self.ax03_6 = self.createAxes(self.tabAtr('Ex03Figure'), args=axArgs)
+        self.ax03_6.set_aspect(1)
 
 

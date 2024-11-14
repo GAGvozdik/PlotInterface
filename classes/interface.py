@@ -1,8 +1,12 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QTabWidget, QPushButton, QVBoxLayout, QBoxLayout
+from PyQt5.QtWidgets import QApplication, QWidget, QTabWidget, QPushButton, QVBoxLayout, QBoxLayout, QFileDialog, QMessageBox
 from PyQt5.QtWidgets import QHBoxLayout, QLabel, QSlider, QGridLayout, QGroupBox, QDial
 from PyQt5.QtCore import Qt
 from .graphObjects import GraphObjects
+import time
+import numpy as np
+from PyQt5.QtWidgets import QFileDialog, QMessageBox
+from PyQt5.QtCore import QDir
 
 class PlotInterface(GraphObjects):
     def __init__(self):
@@ -21,16 +25,21 @@ class PlotInterface(GraphObjects):
         self.graphColor = '#4c4c4c'
         self.ticksColor = '#b5b5b5'
 
+        self.darkMode = True
+        # self.changeMode()
+
     def createTab(self, name):
         tab = QWidget()
         layout = QGridLayout()
         tab.setLayout(layout)
         self.tabs.addTab(tab, name)
 
-        sliderBox = self.createBox(layout, "Sliders box", [0, 6, 1, 1], ['auto', 300])
+        layout.setObjectName(name)
+
+        sliderBox = self.createBox(layout, "Sliders box", [1, 2], [300, 1100])
         setattr(self, f"{name}SliderBox", sliderBox)
 
-        graphBox = self.createBox(layout, "Graph box", [0, 0, 1, 6])
+        graphBox = self.createBox(layout, "Graph box", [0, 0, 0, 2], [1500, 1100])
         setattr(self, f"{name}GraphBox", graphBox)
 
         figure, canvas = self.createFigure(name, graphBox)
@@ -38,10 +47,46 @@ class PlotInterface(GraphObjects):
         setattr(self, f"{name}Figure", figure)
         setattr(self, f"{name}Canvas", canvas)
 
+        saveButton = QPushButton("Save file")
+        saveButton.clicked.connect(self.saveFile)
+        self.addToBox(sliderBox, saveButton)
+
+
+        # darkMode = QPushButton("Dark mode")
+        # darkMode.clicked.connect(self.changeMode)
+        # self.addToBox(sliderBox, darkMode)
+
+
         return layout
+    
+    def changeMode(self):
+        self.darkMode = not self.darkMode
+        
+        if self.darkMode == True:
+            self.windowColor = '#2E2E2E'   
+            self.widgetColor = '#6e6e6e'
+            self.graphColor = '#4c4c4c'
+            self.ticksColor = '#b5b5b5'
+        else:
+            self.windowColor = 'white'   
+            self.widgetColor = 'grey'
+            self.graphColor = 'white'
+            self.ticksColor = 'black'
+
+
+    def saveFile(self):
+        current_index = self.tabs.currentIndex()
+        current_tab_name = self.tabs.tabText(current_index)
+        figure_name = f"{current_tab_name}Figure"
+        figure = getattr(self, figure_name, None)
+        way = self.save_file()
+        figure.savefig(way, transparent=True, dpi=400)
+
+
 
     def tabAtr(self, name):
         return getattr(self, f"{name}")
+
 
     def createSlider(self, min, max, tab, init=0, func='none', name='', label=False):
         sliderBox = self.createBox(tab, name, size=[240, 100], v=False)
@@ -60,12 +105,15 @@ class PlotInterface(GraphObjects):
             self.addToBox(sliderBox, self.tabAtr(f"{name} Slider Label"))
 
         setattr(self, f"{name} slider", slider)
+
+        self.addToBox(self.tabAtr(f'{tab.objectName()}SliderBox'), sliderBox)
+
         return sliderBox
 
     def createQDial(self, min, max, init, tab, func='none', name='', label=False):
         dialBox = self.createBox(tab, name, size=[240, 250])
         dial = QDial(self)
-        dial.move(30, 50)
+        dial.move(0, 0)
         dial.setFixedSize(190, 150)
         dial.setRange(min, max)
         dial.setSingleStep(1)
@@ -78,6 +126,8 @@ class PlotInterface(GraphObjects):
             label = QLabel(str(init))
             setattr(self, f"{name} QDial Label", label)
             self.addToBox(dialBox, self.tabAtr(f"{name} QDial Label"))
+
+        self.addToBox(self.tabAtr(f'{tab.objectName()}SliderBox'), dialBox)
 
         return dialBox
 
@@ -105,7 +155,77 @@ class PlotInterface(GraphObjects):
 
     def addToBox(self, box, widget):
         box.layout().addWidget(widget)
-        
+
+    def canvasDraw(tab):
+        def decorator(func):
+            def wrapper(self, *args, **kwargs):
+                result = func(self, *args, **kwargs)
+                self.tabAtr(f'{tab}Canvas').draw()  
+                return result
+            return wrapper
+        return decorator
+    
+
+    def getWorkTime(name):
+        def decorator(func):
+            def wrapper(self, *args, **kwargs):
+                start_time = time.time() 
+
+                result = func(self, *args, **kwargs)
+
+                end_time = time.time()
+                method_time = end_time - start_time
+
+
+                print(f"Max {name} method work time: {method_time:.4f} s")
+
+ 
+                return result
+            return wrapper
+        return decorator
+
+
+    def load_file(self):
+        options = QFileDialog.Options()
+        fileName, _ = QFileDialog.getOpenFileName(
+            self, 
+            "Choose the file", 
+            "", 
+            "Text Files (*.txt);;All Files (*)", 
+            options=options
+        )
+
+        if fileName:
+            try:
+                x, y, v = np.loadtxt(fileName, unpack=True)
+                QMessageBox.information(self, "Sucess", "File uploaded")
+                print(x[:5], y[:5], v[:5])
+                return x, y, v
+            
+            except:
+                QMessageBox.critical(self, "Error", f"Can`t upload file")
+                return [], [], []
+        else:
+            QMessageBox.critical(self, "Error", f"Can`t find file")
+            return [], [], []
+
+    def save_file(self):
+        options = QFileDialog.Options()
+        fileName, _ = QFileDialog.getSaveFileName(
+            self,
+            "Choose the file",
+            QDir.currentPath(),
+            "PNG Images (*.png);;All Files (*)",
+            options=options
+        )
+
+        if fileName:
+            QMessageBox.information(self, "Sucess", "file was choosen")
+            return fileName
+        else:
+            QMessageBox.critical(self, "Error", "file wasn`t choosen")
+            return None
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
