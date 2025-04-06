@@ -86,6 +86,7 @@ QLabel {
     color: #FFFFFF;              /* Цвет текста меток */
 }
 
+
 QTabWidget::pane {
     background-color: #3C3C3C; /* Цвет фона для вкладок */
     border: 3px solid #444444;   
@@ -97,14 +98,33 @@ QTabBar::tab {
     color: #b5b5b5; /* Цвет текста вкладки */
     padding: 10px;
     margin-right: 10px;
-    margin-bottom: 10px;
+    margin-bottom: 6px;
+    margin-top: 6px;
     border-radius: 10px;  
     width: 150px;
     height: 30px;
     border: 3px solid #444444;  
     font-size: 25px;
+}
 
 
+QTabBar QToolButton { /* the scroll buttons are tool buttons */
+    background-color: #3C3C3C;
+    border: 3px solid #666666; 
+    border-radius: 5px;  
+
+   
+    width: 20px;
+
+    margin: 6px;
+    margin-right: 0px;
+    margin-left: 0px;
+    height: 5px;
+}
+
+QTabBar::scroller{ 
+    margin: 4px;
+    width: 90px;
 }
 
 QTabBar::tab:selected {

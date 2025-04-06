@@ -7,11 +7,31 @@ import time
 import numpy as np
 from PyQt5.QtWidgets import QFileDialog, QMessageBox
 from PyQt5.QtCore import QDir
+from PyQt5.QtWidgets import QMenu
+
 
 class PlotInterface(GraphObjects):
     def __init__(self):
         super().__init__()  
         
+        # menuBar = self.menuBar()
+        # # Creating menus using a QMenu object
+        # fileMenu = QMenu("&File", self)
+        # menuBar.addMenu(fileMenu)
+        # # Creating menus using a title
+        # editMenu = menuBar.addMenu("&Edit")
+        # helpMenu = menuBar.addMenu("&Help")
+
+        # self.menu = QTabWidget()
+        # menuItem = QWidget()
+        # layout = QGridLayout()
+        # menuItem.setLayout(layout)
+        # self.menu.addTab(menuItem, 'List')
+        
+        # self.layout.addWidget(self.menu, 0, 0, 0, 1)  
+
+
+
         self.setWindowTitle("Module plot interface")
         self.setGeometry(500, 130, 1800, 1100) # (x, y, width, height)
         self.layout = QGridLayout()
@@ -19,6 +39,7 @@ class PlotInterface(GraphObjects):
 
         self.tabs = QTabWidget()
         self.layout.addWidget(self.tabs, 0, 0)       
+  
 
         self.windowColor = '#2E2E2E'   
         self.widgetColor = '#6e6e6e'
@@ -27,6 +48,8 @@ class PlotInterface(GraphObjects):
 
         self.darkMode = True
         # self.changeMode()
+
+        self.fileName = None
 
     def createTab(self, name):
         tab = QWidget()
@@ -47,10 +70,13 @@ class PlotInterface(GraphObjects):
         setattr(self, f"{name}Figure", figure)
         setattr(self, f"{name}Canvas", canvas)
 
-        saveButton = QPushButton("Save file")
+        saveButton = QPushButton("Save picture")
         saveButton.clicked.connect(self.saveFile)
         self.addToBox(sliderBox, saveButton)
 
+        loadButton = QPushButton("Load file")
+        loadButton.clicked.connect(self.get_file_way)
+        self.addToBox(sliderBox, loadButton)
 
         # darkMode = QPushButton("Dark mode")
         # darkMode.clicked.connect(self.changeMode)
@@ -75,12 +101,16 @@ class PlotInterface(GraphObjects):
 
 
     def saveFile(self):
-        current_index = self.tabs.currentIndex()
-        current_tab_name = self.tabs.tabText(current_index)
-        figure_name = f"{current_tab_name}Figure"
-        figure = getattr(self, figure_name, None)
-        way = self.save_file()
-        figure.savefig(way, transparent=True, dpi=400)
+        try:
+            current_index = self.tabs.currentIndex()
+            current_tab_name = self.tabs.tabText(current_index)
+            figure_name = f"{current_tab_name}Figure"
+            figure = getattr(self, figure_name, None)
+            way = self.save_file()
+            if way != None:
+                figure.savefig(way, transparent=True, dpi=400)
+        except:
+            pass
 
 
 
@@ -127,6 +157,7 @@ class PlotInterface(GraphObjects):
             setattr(self, f"{name} QDial Label", label)
             self.addToBox(dialBox, self.tabAtr(f"{name} QDial Label"))
 
+        setattr(self, f"{name} QDial", dial)
         self.addToBox(self.tabAtr(f'{tab.objectName()}SliderBox'), dialBox)
 
         return dialBox
@@ -209,21 +240,40 @@ class PlotInterface(GraphObjects):
             QMessageBox.critical(self, "Error", f"Can`t find file")
             return [], [], []
 
-    def save_file(self):
+    def get_file_way(self):
         options = QFileDialog.Options()
-        fileName, _ = QFileDialog.getSaveFileName(
-            self,
-            "Choose the file",
-            QDir.currentPath(),
-            "PNG Images (*.png);;All Files (*)",
+        fileName, _ = QFileDialog.getOpenFileName(
+            self, 
+            "Choose the file", 
+            "", 
+            "All Files (*)", 
             options=options
         )
 
         if fileName:
-            QMessageBox.information(self, "Sucess", "file was choosen")
-            return fileName
+            self.fileName = fileName
         else:
-            QMessageBox.critical(self, "Error", "file wasn`t choosen")
+            QMessageBox.critical(self, "Error", f"Can`t find file")
+
+
+    def save_file(self):
+        try:
+            options = QFileDialog.Options()
+            fileName, _ = QFileDialog.getSaveFileName(
+                self,
+                "Choose the file",
+                QDir.currentPath(),
+                "PNG Images (*.png);;All Files (*)",
+                options=options
+            )
+
+            if fileName:
+                QMessageBox.information(self, "Sucess", "file was choosen")
+                return fileName
+            else:
+                QMessageBox.critical(self, "Error", "file wasn`t choosen")
+                return None
+        except:
             return None
 
 if __name__ == "__main__":
