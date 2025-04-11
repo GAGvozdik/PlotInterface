@@ -10,6 +10,7 @@ from matplotlib.figure import Figure
 from PyQt5.QtWidgets import QApplication, QWidget, QTabWidget
 from PyQt5.QtWidgets import QGridLayout
 from .interface import PlotInterface
+from pathlib import Path
 
 class Example10(PlotInterface):
     def __init__(self):

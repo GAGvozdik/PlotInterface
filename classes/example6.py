@@ -1,5 +1,6 @@
 from .interface import PlotInterface
 import pandas as pd
+from pathlib import Path
 
 class Example6(PlotInterface):
     def __init__(self):
@@ -16,8 +17,11 @@ class Example6(PlotInterface):
                 'grid': False
             }
         )
-
-        data = pd.read_csv("data/line10.csv")
+        
+        current_dir = Path(__file__).parent.resolve()
+        data_dir = current_dir.parent.parent / "PlotInterface" / "data" / "line10.csv"
+        
+        data = pd.read_csv(data_dir)
         EC = data["EC475Hz[mS/m]"]
         EC_smooth = EC.rolling(15, min_periods=1).mean()
 

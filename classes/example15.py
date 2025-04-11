@@ -7,14 +7,14 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 from matplotlib.colors import LinearSegmentedColormap
 from .interface import PlotInterface
-
+from pathlib import Path
 
 class Example15(PlotInterface):
     def __init__(self):
         super().__init__()
 
         self.tab15 = self.createTab('Ex15')
-        self.loadData()
+        self.loadData15()
 
         self.ncla15 = 20
         self.alpha15 = 45
@@ -110,8 +110,11 @@ class Example15(PlotInterface):
 
 
 
-    def loadData(self):
-        file = open('data/artic135_subsample.txt', 'r')
+    def loadData15(self):
+        current_dir = Path(__file__).parent.resolve()
+        data_dir = current_dir.parent.parent / "PlotInterface" / "data" / "artic135_subsample.txt"
+        
+        file = open(data_dir, 'r')
         x, y, self.v = np.loadtxt(file, unpack=True)
         self.xy_data = np.array((x, y)).T
 

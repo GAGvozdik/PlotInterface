@@ -1,4 +1,5 @@
 from .interface import PlotInterface
+from pathlib import Path
 
 # INTERFACE 3
 class Example3(PlotInterface):

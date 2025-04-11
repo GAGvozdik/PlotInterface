@@ -33,7 +33,7 @@ class PlotInterface(GraphObjects):
 
 
         self.setWindowTitle("Module plot interface")
-        self.setGeometry(500, 130, 1800, 1100) # (x, y, width, height)
+        self.setGeometry(250, 50, 2100, 1300) # (x, y, width, height)
         self.layout = QGridLayout()
         self.setLayout(self.layout)
 
@@ -59,10 +59,10 @@ class PlotInterface(GraphObjects):
 
         layout.setObjectName(name)
 
-        sliderBox = self.createBox(layout, "Sliders box", [1, 2], [300, 1100])
+        sliderBox = self.createBox(layout, "Sliders box", [1, 2], [300, 1200])
         setattr(self, f"{name}SliderBox", sliderBox)
 
-        graphBox = self.createBox(layout, "Graph box", [0, 0, 0, 2], [1500, 1100])
+        graphBox = self.createBox(layout, "Graph box", [0, 0, 0, 2], [1800, 1200])
         setattr(self, f"{name}GraphBox", graphBox)
 
         figure, canvas = self.createFigure(name, graphBox)

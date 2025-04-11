@@ -3,6 +3,7 @@ import pandas as pd
 import geone as gn
 from .interface import PlotInterface
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 class Example9(PlotInterface):
     def __init__(self):
@@ -33,8 +34,10 @@ class Example9(PlotInterface):
             tab=self.tab09, 
             label=True
         )
-
-        data = pd.read_csv("data/walker_exhaustive.dat")
+        
+        current_dir = Path(__file__).parent.resolve()
+        data_dir = current_dir.parent.parent / "PlotInterface" / "data" / "walker_exhaustive.dat"
+        data = pd.read_csv(data_dir)
 
         idx = np.arange(len(data))
         np.random.shuffle(idx)

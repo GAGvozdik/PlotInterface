@@ -1,5 +1,6 @@
 from .interface import PlotInterface
 import numpy as np
+from pathlib import Path
 
 # INTERFACE 2
 class Example2(PlotInterface):

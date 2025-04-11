@@ -4,6 +4,7 @@ import geone as gn
 from matplotlib.colors import LinearSegmentedColormap
 from .interface import PlotInterface
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 class Example17(PlotInterface):
     def __init__(self):
@@ -12,7 +13,7 @@ class Example17(PlotInterface):
         self.tab17 = self.createTab('Ex17')
         
         self.loadButton = QPushButton("Load file")
-        self.loadButton.clicked.connect(self.loadFile)
+        self.loadButton.clicked.connect(self.loadFile17)
         self.addToBox(self.tabAtr('Ex17SliderBox'), self.loadButton)
 
         self.qdial17_1 = self.createQDial(1, 200, 80, func=self.updateParameter17_1, name='parameter', tab=self.tab17, label=True)
@@ -22,7 +23,7 @@ class Example17(PlotInterface):
 
 
 
-    def loadFile(self):
+    def loadFile17(self):
         # self.x, self.y, self.v = self.load_file()
         # self.xy_data = np.array((self.x, self.y)).T
         print(self.load_file())
@@ -54,6 +55,9 @@ class Example17(PlotInterface):
         sx, sy, sz = self.ti.sx, self.ti.sy, self.ti.sz # cell unit
         ox, oy, oz = 0.0, 0.0, 0.0       # origin (corner of the "first" grid cell)
 
+        # current_dir = Path(__file__).parent.resolve()
+        # data_dir = current_dir.parent.parent / "PlotInterface" / "data" / "artic135_subsample.txt"
+        
         hd = gn.img.readPointSetTxt('hd.txt')
 
         hd_col = gn.imgplot.get_colors_from_values(hd.val[3], categ=True, categVal=categ_val, categCol=categ_col)

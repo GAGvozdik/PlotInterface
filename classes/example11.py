@@ -2,6 +2,7 @@ from .interface import PlotInterface
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 # INTERFACE 11
 class Example11(PlotInterface):
@@ -12,10 +13,13 @@ class Example11(PlotInterface):
         
         self.drawAxes11()
 
-        self.plotScatter11('data/data1.txt', self.ax11_1)
-        self.plotScatter11('data/data2.txt', self.ax11_2)
-        self.plotScatter11('data/data3.txt', self.ax11_3)
-        self.plotScatter11('data/data4.txt', self.ax11_4)
+        current_dir = Path(__file__).parent.resolve()
+        data_dir = current_dir.parent.parent / "PlotInterface" / "data"
+
+        self.plotScatter11(data_dir / 'data1.txt', self.ax11_1)
+        self.plotScatter11(data_dir / 'data2.txt', self.ax11_2)
+        self.plotScatter11(data_dir / 'data3.txt', self.ax11_3)
+        self.plotScatter11(data_dir / 'data4.txt', self.ax11_4)
 
     def plotScatter11(self, way, ax):
         file = open(way, 'r')

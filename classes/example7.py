@@ -1,6 +1,7 @@
 from .interface import PlotInterface
 import numpy as np
 import pandas as pd
+from pathlib import Path
 
 class Example7(PlotInterface):
     def __init__(self):
@@ -18,7 +19,10 @@ class Example7(PlotInterface):
             label=True
         )
 
-        data = pd.read_csv("data/walker_exhaustive.dat")
+        current_dir = Path(__file__).parent.resolve()
+        data_dir = current_dir.parent.parent / "PlotInterface" / "data" / "walker_exhaustive.dat"
+
+        data = pd.read_csv(data_dir)
 
         self.V = data["V"].values.reshape((300, 260))
         self.winsize = 1

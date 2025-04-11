@@ -4,6 +4,7 @@ import geone as gn
 from matplotlib.colors import LinearSegmentedColormap
 from .interface import PlotInterface
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 class Example14(PlotInterface):
     def __init__(self):

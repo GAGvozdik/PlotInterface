@@ -1,18 +1,26 @@
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QFileDialog
+
 import numpy as np
 import sys
-from classes.examples import AllExamples
-import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap
 import pandas as pd
 import geone as gn
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from PyQt5.QtWidgets import QApplication, QWidget, QTabWidget
-from PyQt5.QtWidgets import QGridLayout
-from matplotlib.colors import LinearSegmentedColormap
 from pathlib import Path
 
-class MainApp(AllExamples):
+from classes.examples import AllExamples
+from seismic_examples.all_seismic_examples import AllSeismicExamples
+
+import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
+from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+
+from PyQt5.QtWidgets import QApplication, QWidget, QTabWidget
+from PyQt5.QtWidgets import QGridLayout
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QFileDialog
+
+
+
+# class MainApp(AllExamples):
+class MainApp(AllSeismicExamples):
     def __init__(self):
         super().__init__()
 
@@ -21,7 +29,7 @@ class MainApp(AllExamples):
         self.slider18 = self.createSlider(
             1, 3000, init=3000,
             func=self.updatePoint18, 
-            name='Parameter 1', 
+            name='Slider value', 
             tab=self.tab18,
             label=True
         )
@@ -29,11 +37,10 @@ class MainApp(AllExamples):
         self.qdial18 = self.createQDial(
             1, 3000, 3000, 
             func=self.updateScatter18, 
-            name='Number of points', 
+            name='QDial value', 
             tab=self.tab18,
             label=True
         )
-
 
         self.n18 = 3000
         self.x18 = [np.random.rand() for i in range(self.n18)]
@@ -94,9 +101,9 @@ class MainApp(AllExamples):
         self.n18 = index
         self.points18.remove()
         self.draw18()
-        self.tabAtr('Number of points QDial Label').setText(str(index))
-        self.tabAtr('Parameter 1 slider').setValue(index)
-        self.tabAtr('Parameter 1 Slider Label').setText(str(index))
+        self.tabAtr('QDial value QDial Label').setText(str(index))
+        self.tabAtr('Slider value slider').setValue(index)
+        self.tabAtr('Slider value Slider Label').setText(str(index))
 
     # @AllExamples.canvasDraw(tab='Ex18')
     def redraw18(self):
@@ -114,9 +121,9 @@ class MainApp(AllExamples):
     
     def updatePoint18(self, index):
         
-        self.tabAtr('Number of points QDial Label').setText(str(index))
-        self.tabAtr('Number of points QDial').setValue(index)
-        self.tabAtr('Parameter 1 Slider Label').setText(str(index))
+        self.tabAtr('QDial value QDial Label').setText(str(index))
+        self.tabAtr('QDial value QDial').setValue(index)
+        self.tabAtr('Slider value Slider Label').setText(str(index))
 
 
 if __name__ == "__main__":

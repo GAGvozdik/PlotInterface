@@ -1,5 +1,6 @@
 import numpy as np
 from .interface import PlotInterface
+from pathlib import Path
 
 class Example8(PlotInterface):
     def __init__(self):
@@ -35,7 +36,9 @@ class Example8(PlotInterface):
             }
         )
 
-        x, y, V, U = np.loadtxt("data/data.csv", unpack=True)
+        current_dir = Path(__file__).parent.resolve()
+        data_dir = current_dir.parent.parent / "PlotInterface" / "data" / "data.csv"
+        x, y, V, U = np.loadtxt(data_dir, unpack=True)
         border = 1
 
         self.ax8.set_xlim((x[0] - border, x[-1] + border))

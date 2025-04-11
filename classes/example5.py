@@ -1,6 +1,7 @@
 from .interface import PlotInterface
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
+from pathlib import Path
 
 # INTERFACE 5
 class Example5(PlotInterface):
@@ -23,7 +24,9 @@ class Example5(PlotInterface):
         axArgs['pos'] = 122
         ax05_2 = self.createAxes(self.tabAtr('Ex05Figure'), args=axArgs)
 
-        file = open('data/data.csv', 'r')
+        current_dir = Path(__file__).parent.resolve()
+        data_dir = current_dir.parent.parent / "PlotInterface" / "data" / "data.csv"
+        file = open(data_dir, 'r')
 
         x, y, V, U = np.loadtxt(file, unpack=True)
         cmap = LinearSegmentedColormap.from_list("white_to_Crimson", ["white", "Crimson"])

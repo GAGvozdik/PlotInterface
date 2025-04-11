@@ -10,6 +10,7 @@ from matplotlib.figure import Figure
 from PyQt5.QtWidgets import QApplication, QWidget, QTabWidget
 from PyQt5.QtWidgets import QGridLayout
 from .interface import PlotInterface
+from pathlib import Path
 
 class Example13(PlotInterface):
     def __init__(self):
@@ -49,10 +50,13 @@ class Example13(PlotInterface):
         self.tabAtr('Ex13Figure').clf()
         self.drawAxes13()
 
-        self.drawOneVar('data/data1.txt', self.ax13_1, 'data 1')
-        self.drawOneVar('data/data2.txt', self.ax13_1, 'data 2')
-        self.drawOneVar('data/data3.txt', self.ax13_1, 'data 3')
-        self.drawOneVar('data/data4.txt', self.ax13_1, 'data 4')
+        current_dir = Path(__file__).parent.resolve()
+        data_dir = current_dir.parent.parent / "PlotInterface" / "data"
+
+        self.drawOneVar(data_dir / 'data1.txt', self.ax13_1, 'data 1')
+        self.drawOneVar(data_dir / 'data2.txt', self.ax13_1, 'data 2')
+        self.drawOneVar(data_dir / 'data3.txt', self.ax13_1, 'data 3')
+        self.drawOneVar(data_dir / 'data4.txt', self.ax13_1, 'data 4')
 
         self.ax13_1.legend(loc=1, fontsize=20, markerscale=2)
 

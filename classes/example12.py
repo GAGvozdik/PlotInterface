@@ -2,6 +2,7 @@ from .interface import PlotInterface
 import numpy as np
 import geone as gn
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 # INTERFACE 12
 class Example12(PlotInterface):
@@ -12,10 +13,12 @@ class Example12(PlotInterface):
 
         self.drawAxes12()
 
-        self.drawVariogram12('data/data1.txt', self.ax12_1)
-        self.drawVariogram12('data/data2.txt', self.ax12_2)
-        self.drawVariogram12('data/data3.txt', self.ax12_3)
-        self.drawVariogram12('data/data4.txt', self.ax12_4)
+        current_dir = Path(__file__).parent.resolve()
+        data_dir = current_dir.parent.parent / "PlotInterface" / "data"
+        self.drawVariogram12(data_dir / 'data1.txt', self.ax12_1)
+        self.drawVariogram12(data_dir / 'data2.txt', self.ax12_2)
+        self.drawVariogram12(data_dir / 'data3.txt', self.ax12_3)
+        self.drawVariogram12(data_dir / 'data4.txt', self.ax12_4)
 
     def drawVariogram12(self, way, ax):
         plt.sca(ax)

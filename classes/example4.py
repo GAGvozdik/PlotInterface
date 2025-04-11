@@ -1,6 +1,7 @@
 from .interface import PlotInterface
 import numpy as np
 from matplotlib.colors import ListedColormap
+from pathlib import Path
 
 class Example4(PlotInterface):
     def __init__(self):
@@ -29,7 +30,10 @@ class Example4(PlotInterface):
             }
         )
 
-        x, y, self.V04, U = np.loadtxt("data/data.csv", unpack=True)
+        current_dir = Path(__file__).parent.resolve()
+        data_dir = current_dir.parent.parent / "PlotInterface" / "data" / "data.csv"
+
+        x, y, self.V04, U = np.loadtxt(data_dir, unpack=True)
         self.q04 = np.quantile(self.V04, 1)
 
         self.scatterArgsEx04 = {
