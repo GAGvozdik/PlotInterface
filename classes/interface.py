@@ -81,8 +81,7 @@ class PlotInterface(GraphObjects):
         # darkMode = QPushButton("Dark mode")
         # darkMode.clicked.connect(self.changeMode)
         # self.addToBox(sliderBox, darkMode)
-
-
+        
         return layout
     
     def changeMode(self):

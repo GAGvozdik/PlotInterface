@@ -77,14 +77,14 @@ class SeismicExample01(PlotInterface):
         self.Rg = add_geometric_spreading(self.RL, self.THK) 
 
         # Plot the original reflectivity signal
-        self.ax01.plot(self.T, self.R, linewidth=16, color='darkcyan', label='Original Reflectivity')
+        self.ax01.plot(self.T, self.R, linewidth=7, color='gray', label='Original Reflectivity')
 
         # Plot the original and modified reflectivity signals
-        self.ax01.plot(self.T, self.RM, linewidth=12, color='orange', label='Reflectivity with Multiples')
+        self.ax01.plot(self.T, self.RM, linewidth=6, color='orange', label='Reflectivity with Multiples')
 
-        self.ax01.plot(self.T, self.RL, linewidth=8, color='Crimson', label='Reflectivity with Multiples and absorption')
+        self.ax01.plot(self.T, self.RL, linewidth=3, color='darkcyan', label='Reflectivity with Multiples and absorption')
         
-        self.ax01.plot(self.T, self.Rg, linewidth=4, color='mediumseagreen', label='Reflectivity with absorption and geometric_spreading')
+        self.ax01.plot(self.T, self.Rg, linewidth=2, color='Crimson', label='Reflectivity with absorption and geometric_spreading')
         
         self.ax01.legend(loc=1, fontsize=17)
         
@@ -118,6 +118,6 @@ class SeismicExample01(PlotInterface):
         )
         # self.ax01.axis([0, self.tmax, -1, 1])  # Set axis limits
         # self.ax01.axis([0, self.tmax, -.4, 0.1])  # Set axis limits
-        # self.ax01.set_ylim([-1, 1])
+        self.ax01.set_ylim([-0.4, 0.41])
         self.ax01.set_xlim([0, 2.9])
         

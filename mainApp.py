@@ -17,8 +17,6 @@ from PyQt5.QtWidgets import QApplication, QWidget, QTabWidget
 from PyQt5.QtWidgets import QGridLayout
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QFileDialog
 
-
-
 # class MainApp(AllExamples):
 class MainApp(AllSeismicExamples):
     def __init__(self):
@@ -32,7 +30,7 @@ class MainApp(AllSeismicExamples):
             name='Slider value', 
             tab=self.tab18,
             label=True
-        )
+        )   
 
         self.qdial18 = self.createQDial(
             1, 3000, 3000, 
@@ -41,7 +39,7 @@ class MainApp(AllSeismicExamples):
             tab=self.tab18,
             label=True
         )
-
+        
         self.n18 = 3000
         self.x18 = [np.random.rand() for i in range(self.n18)]
         self.y18 = [np.random.rand() for i in range(self.n18)]

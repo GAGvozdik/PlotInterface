@@ -1,9 +1,9 @@
 import numpy as np
-
+from tqdm import tqdm
 # Define the tntamp function to compute the amplitude spectrum
 from .decorators import work_time
 
-@work_time(func_name='tntamp')
+@work_time()
 def tntamp(fdom, f, m):
     """
     Computes the amplitude spectrum of the wavelet.

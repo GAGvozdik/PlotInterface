@@ -3,8 +3,9 @@ from scipy.signal import convolve
 import warnings
 from .mwhalf import mwhalf
 from .decorators import work_time
+from tqdm import tqdm
 
-@work_time(func_name='convm')
+@work_time()
 def convm(r, w, pct=10):
     """
     CONVM: convolution followed by truncation for min phase filters
@@ -45,8 +46,12 @@ def convm(r, w, pct=10):
     else:
         mw = np.ones(nsamps)  # No taper
     
+    GREY = "\033[90m"
+    RESET = "\033[0m"
+    bar_format = f"{GREY}{{l_bar}}{{bar}}{{r_bar}}{RESET}"
+    
     # Perform convolution for each trace
-    for k in range(ntr):
+    for k in tqdm(range(ntr), desc="Processing...", bar_format=bar_format):
         temp = convolve(r[:, k], w, mode='full')  # Full convolution
         s[:, k] = temp[:nsamps] * mw  # Truncate to input length and apply taper
     

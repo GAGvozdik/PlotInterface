@@ -4,8 +4,9 @@ import numpy as np
 from .tntamp import tntamp
 from .levrec import levrec
 from .decorators import work_time
+from tqdm import tqdm
 
-@work_time(func_name='wavemin')
+@work_time()
 def wavemin(dt, fdom, tlength, m=7, stab=0.000001):
     """
     Generates a minimum-phase wavelet.

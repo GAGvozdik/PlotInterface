@@ -1,9 +1,9 @@
 import numpy as np
-
+from tqdm import tqdm
 # Define the mwindow function to create a tapering window
 from .decorators import work_time
 
-@work_time(func_name='mwindow')
+@work_time()
 def mwindow(nsamps, percent):
     """
     Creates a tapering window.

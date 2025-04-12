@@ -1,7 +1,8 @@
 import numpy as np
 from .decorators import work_time
+from tqdm import tqdm
 
-@work_time(func_name='mwhalf')
+@work_time()
 def mwhalf(n, pct):
     """
     Create a cosine taper window (helper function for convm)

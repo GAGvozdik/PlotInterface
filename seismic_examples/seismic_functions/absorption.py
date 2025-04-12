@@ -1,7 +1,8 @@
 import numpy as np
 from .decorators import work_time
+from tqdm import tqdm
 
-@work_time(func_name='absorption')
+@work_time()
 def absorption(r, q, dt, fdom):
     """
     This function adds attenuation losses to a synthetic reflectivity signal.
@@ -26,8 +27,12 @@ def absorption(r, q, dt, fdom):
         # Initialize the attenuation factor array
     a = np.ones_like(r)
     
+    GREY = "\033[90m"
+    RESET = "\033[0m"
+    bar_format = f"{GREY}{{l_bar}}{{bar}}{{r_bar}}{RESET}"
+    
     # Compute the attenuation factor recursively
-    for i in range(1, N):
+    for i in tqdm(range(1, N), desc="Processing...", bar_format=bar_format):
         a[i] = a[i - 1] * np.exp(-dt * fdom * np.pi / q[i - 1])
     
     # Apply attenuation to the reflectivity signal

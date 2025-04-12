@@ -1,7 +1,8 @@
 import numpy as np
 from .decorators import work_time
+from tqdm import tqdm
 
-@work_time(func_name='deconf')
+@work_time()
 def deconf(R, RL, n, stab):
     """
     This function performs deconvolution using the Levinson recursion algorithm.
@@ -19,8 +20,12 @@ def deconf(R, RL, n, stab):
     N = len(R)
     RASW_gain = np.zeros(N)
     
+    GREY = "\033[90m"
+    RESET = "\033[0m"
+    bar_format = f"{GREY}{{l_bar}}{{bar}}{{r_bar}}{RESET}"
+    
     # Levinson recursion for deconvolution
-    for i in range(n):
+    for i in tqdm(range(n), desc="Processing...", bar_format=bar_format):
         RASW_gain[i] = (R[i] - stab * RL[i]) / (1 + stab)
     
     return RASW_gain

@@ -1,7 +1,8 @@
 import numpy as np
 from .decorators import work_time
+from tqdm import tqdm
 
-@work_time(func_name='reflec_from_model')
+@work_time()
 def reflec_from_model(rho, v, q, thk, dt, tmax=None):
     """
     This function generates a reflectivity signal from a multilayer model,
@@ -28,8 +29,13 @@ def reflec_from_model(rho, v, q, thk, dt, tmax=None):
     NLayers = len(rho)  # Number of layers
     t = np.zeros(NLayers)  # Initialize time array
     
+    GREY = "\033[90m"
+    RESET = "\033[0m"
+
+    bar_format = f"{GREY}{{l_bar}}{{bar}}{{r_bar}}{RESET}"
+
     # Calculate the two-way travel time for each layer
-    for i in range(NLayers - 1):   # question?
+    for i in tqdm(range(NLayers - 1), desc="Processing...", bar_format=bar_format):
         t[i] = 2 * thk[i] / v[i]
     
     # Calculate the total time for the last layer
@@ -59,7 +65,7 @@ def reflec_from_model(rho, v, q, thk, dt, tmax=None):
     k = 0  # Counter for the output arrays
     
     # Populate the output arrays
-    for i in range(NLayers):
+    for i in tqdm(range(NLayers), desc="Processing...", bar_format=bar_format):
         for j in range(n[i]):
             V[k] = v[i]
             RHO[k] = rho[i]

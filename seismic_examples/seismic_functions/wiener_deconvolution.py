@@ -1,10 +1,9 @@
 import numpy as np
-
-
+from tqdm import tqdm
 # 1. Frequency Domain Wiener Deconvolution
 from .decorators import work_time
 
-@work_time(func_name='wiener_deconvolution')
+@work_time()
 def wiener_deconvolution(input_signal, wavelet, noise_level=0.01):
     n = len(input_signal) + len(wavelet) - 1
     input_signal_padded = np.pad(input_signal, (0, n - len(input_signal)))
