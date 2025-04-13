@@ -28,70 +28,68 @@ class SeismicExample03(PlotInterface):
         self.q = np.array([50, 50, 50, 50, 50, 50])  # Quality factor
         self.thk = np.array([100, 70, 100, 250, 300])  # Thickness in meters
         
-        self.dt = 0.02  # Sampling interval in seconds
+        self.__dt = 0.3  # Sampling interval in seconds
         self.tmax = 2  # Total modeled time in seconds
+        self.__fdom = 20  # Dominant frequency in Hz
 
-        # Define the dominant frequency for absorption
-        self.fdom = 20  # Dominant frequency in Hz
+        self.__tab = self.createTab('Ex03')
 
-        self.tab03 = self.createTab('Ex03')
-
-        self.slider03 = self.createSlider(
-            1, 3000, init=int(10 * self.fdom),
-            func=self.updateFDom03, 
+        self.__slider1 = self.createSlider(
+            1, 3000, init=int(10 * self.__fdom),
+            func=self.__updateFDom, 
             name='Dominant frequency 3', 
-            tab=self.tab03,
+            tab=self.__tab,
             label=True
         )
-        self.tabAtr('Dominant frequency 3 Slider Label').setText(str(self.fdom))
+        self.tabAtr('Dominant frequency 3 Slider Label').setText(str(self.__fdom))
         
-        self.slider03 = self.createSlider(
-            20, 500, init=int(self.dt * 10000),
-            func=self.updatedT03, 
+        self.__slider2 = self.createSlider(
+            20, 500, init=int(self.__dt * 10000),
+            func=self.__updatedT, 
             name='dT 3', 
-            tab=self.tab03,
+            tab=self.__tab,
             label=True
         )
-        self.tabAtr('dT 3 Slider Label').setText(str(self.dt))
+        self.tabAtr('dT 3 Slider Label').setText(str(self.__dt))
         
-        self.drawAxes03()
-        self.draw03()
+        self.__drawAxes()
+        self.__draw()
         
 
     @PlotInterface.canvasDraw(tab='Ex03')
-    def draw03(self):
-        self.ax03_1.remove()
-        self.ax03_2.remove()
-        self.ax03_3.remove()
-        self.ax03_4.remove()
-        self.drawAxes03()
+    def __draw(self):
+        self.__ax1.remove()
+        self.__ax2.remove()
+        self.__ax3.remove()
+        self.__ax4.remove()
+        self.__drawAxes()
         
-        self.R, self.V, self.RHO, self.Q, self.THK, self.T = reflec_from_model(self.rho, self.v, self.q, self.thk, self.dt, self.tmax)
+        self.R, self.V, self.RHO, self.Q, self.THK, self.T = reflec_from_model(self.rho, self.v, self.q, self.thk, self.__dt, self.tmax)
 
         self.RM = add_multiples(self.R, type=1, R0=-0.5)
-        self.RL = absorption(self.RM, self.Q, self.dt, self.fdom) # do you know why here is RM? 
+        self.RL = absorption(self.RM, self.Q, self.__dt, self.__fdom) # do you know why here is RM? 
         self.Rg = add_geometric_spreading(self.RL, self.THK) 
 
-        self.ax03_1.plot(self.R, self.T, linewidth=3, color='darkcyan', label='Original Reflectivity')
-        self.ax03_2.plot(self.RM, self.T, linewidth=3, color='orange', label='Reflectivity with Multiples')
-        self.ax03_3.plot(self.RL, self.T, linewidth=3, color='Crimson', label='Reflectivity with Multiples and absorption')
-        self.ax03_4.plot(self.Rg, self.T, linewidth=1, color='mediumseagreen', label='Reflectivity with absorption and geometric_spreading')
+        self.__ax1.plot(self.R, self.T, linewidth=3, color='darkcyan', label='Original Reflectivity')
+        self.__ax2.plot(self.RM, self.T, linewidth=3, color='orange', label='Reflectivity with Multiples')
+        self.__ax3.plot(self.RL, self.T, linewidth=3, color='Crimson', label='Reflectivity with Multiples and absorption')
+        self.__ax4.plot(self.Rg, self.T, linewidth=1, color='mediumseagreen', label='Reflectivity with absorption and geometric_spreading')
         
         
-    def updateFDom03(self, index):
-        self.fdom = index / 10
-        self.draw03()
-        self.tabAtr('Dominant frequency 3 Slider Label').setText(str(self.fdom))
+    def __updateFDom(self, index):
+        self.__fdom = index / 10
+        self.__draw()
+        self.tabAtr('Dominant frequency 3 Slider Label').setText(str(self.__fdom))
         
-    def updatedT03(self, index):
-        self.dt = index / 10000
-        print(self.dt)
-        self.draw03()
-        self.tabAtr('dT 3 Slider Label').setText(f"{self.dt:.4f}")
+    def __updatedT(self, index):
+        self.__dt = index / 10000
+        self.__draw()
+        self.tabAtr('dT 3 Slider Label').setText(f"{self.__dt:.4f}")
 
 
     @PlotInterface.canvasDraw(tab='Ex03')
-    def drawAxes03(self):
+    def __drawAxes(self):
+        
         self.tabAtr('Ex03Figure').subplots_adjust(
             left=0.07,    
             right=0.92,   
@@ -101,7 +99,7 @@ class SeismicExample03(PlotInterface):
             hspace=0.4    
         )
 
-        self.ax03_1 = self.createAxes(
+        self.__ax1 = self.createAxes(
             self.tabAtr('Ex03Figure'),
             args={
                 'pos': 141, 
@@ -115,9 +113,9 @@ class SeismicExample03(PlotInterface):
                 'y': 1.05
             }
         )
-        self.ax03_1.axis([-0.4, 0.4,-0.08, self.tmax])  # Set axis limits
+        self.__ax1.axis([-0.4, 0.4,-0.08, self.tmax])
         
-        self.ax03_2 = self.createAxes(
+        self.__ax2 = self.createAxes(
             self.tabAtr('Ex03Figure'),
             args={
                 'pos': 142, 
@@ -131,9 +129,9 @@ class SeismicExample03(PlotInterface):
                 'y': 1.05
             }
         )
-        self.ax03_2.axis([-0.4, 0.4,-0.08, self.tmax])  # Set axis limits
+        self.__ax2.axis([-0.4, 0.4,-0.08, self.tmax])
         
-        self.ax03_3 = self.createAxes(
+        self.__ax3 = self.createAxes(
             self.tabAtr('Ex03Figure'),
             args={
                 'pos': 143, 
@@ -147,9 +145,9 @@ class SeismicExample03(PlotInterface):
                 'y': 1.05
             }
         )
-        self.ax03_3.axis([-0.4, 0.4,-0.08, self.tmax])  # Set axis limits
+        self.__ax3.axis([-0.4, 0.4,-0.08, self.tmax])
         
-        self.ax03_4 = self.createAxes(
+        self.__ax4 = self.createAxes(
             self.tabAtr('Ex03Figure'),
             args={
                 'pos': 144, 
@@ -163,8 +161,8 @@ class SeismicExample03(PlotInterface):
                 'y': 1.05
             }
         )
-        self.ax03_4.axis([-0.005, 0.005, -0.08, self.tmax])  # Set axis limits
-        self.ax03_4.tick_params(axis='both', labelsize=10)
+        self.__ax4.axis([-0.005, 0.005, -0.08, self.tmax])
+        self.__ax4.tick_params(axis='both', labelsize=10)
         
 
 

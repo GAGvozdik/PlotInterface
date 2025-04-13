@@ -24,7 +24,7 @@ class MainApp(AllSeismicExamples):
 
         self.tab18 = self.createTab('Ex18')
 
-        self.slider18 = self.createSlider(
+        self.__slider = self.createSlider(
             1, 3000, init=3000,
             func=self.updatePoint18, 
             name='Slider value', 
@@ -32,7 +32,7 @@ class MainApp(AllSeismicExamples):
             label=True
         )   
 
-        self.qdial18 = self.createQDial(
+        self.__qdial = self.createQDial(
             1, 3000, 3000, 
             func=self.updateScatter18, 
             name='QDial value', 

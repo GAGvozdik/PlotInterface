@@ -28,33 +28,31 @@ class SeismicExample01(PlotInterface):
         self.q = np.array([50, 50, 50, 50, 50, 50])  # Quality factor
         self.thk = np.array([100, 70, 100, 250, 300])  # Thickness in meters
         
-        self.dt = 0.002  # Sampling interval in seconds
+        self.__dt = 0.002  # Sampling interval in seconds
         self.tmax = 2  # Total modeled time in seconds
 
         # Define the dominant frequency for absorption
-        self.fdom = 20  # Dominant frequency in Hz
+        self.__fdom = 20  # Dominant frequency in Hz
 
+        self.__tab = self.createTab('Ex01')
 
-
-        self.tab01 = self.createTab('Ex01')
-
-        self.slider01 = self.createSlider(
-            1, 3000, init=int(10 * self.fdom),
+        self.__slider1 = self.createSlider(
+            1, 3000, init=int(10 * self.__fdom),
             func=self.updateFDom, 
             name='Dominant frequency', 
-            tab=self.tab01,
+            tab=self.__tab,
             label=True
         )
-        self.tabAtr('Dominant frequency Slider Label').setText(str(self.fdom))
+        self.tabAtr('Dominant frequency Slider Label').setText(str(self.__fdom))
         
-        self.slider03 = self.createSlider(
-            20, 500, init=int(self.dt * 10000),
+        self.__slider2 = self.createSlider(
+            20, 500, init=int(self.__dt * 10000),
             func=self.updatedT, 
             name='dT', 
-            tab=self.tab01,
+            tab=self.__tab,
             label=True
         )
-        self.tabAtr('dT Slider Label').setText(str(self.dt))
+        self.tabAtr('dT Slider Label').setText(str(self.__dt))
         
 
         self.drawAxes01()
@@ -63,46 +61,46 @@ class SeismicExample01(PlotInterface):
         
     @PlotInterface.canvasDraw(tab='Ex01')
     def draw01(self):
-        self.ax01.remove()
+        self.__ax1.remove()
         self.drawAxes01()
         
         # Call the reflec_from_model function
-        self.R, self.V, self.RHO, self.Q, self.THK, self.T = reflec_from_model(self.rho, self.v, self.q, self.thk, self.dt, self.tmax)
+        self.R, self.V, self.RHO, self.Q, self.THK, self.T = reflec_from_model(self.rho, self.v, self.q, self.thk, self.__dt, self.tmax)
 
         # Call the add_multiples function
         self.RM = add_multiples(self.R, type=1, R0=-0.5)
         
-        self.RL = absorption(self.RM, self.Q, self.dt, self.fdom) # do you know why here is RM? 
+        self.RL = absorption(self.RM, self.Q, self.__dt, self.__fdom) # do you know why here is RM? 
 
         self.Rg = add_geometric_spreading(self.RL, self.THK) 
 
         # Plot the original reflectivity signal
-        self.ax01.plot(self.T, self.R, linewidth=7, color='gray', label='Original Reflectivity')
+        self.__ax1.plot(self.T, self.R, linewidth=7, color='gray', label='Original Reflectivity')
 
         # Plot the original and modified reflectivity signals
-        self.ax01.plot(self.T, self.RM, linewidth=6, color='orange', label='Reflectivity with Multiples')
+        self.__ax1.plot(self.T, self.RM, linewidth=6, color='orange', label='Reflectivity with Multiples')
 
-        self.ax01.plot(self.T, self.RL, linewidth=3, color='darkcyan', label='Reflectivity with Multiples and absorption')
+        self.__ax1.plot(self.T, self.RL, linewidth=3, color='darkcyan', label='Reflectivity with Multiples and absorption')
         
-        self.ax01.plot(self.T, self.Rg, linewidth=2, color='Crimson', label='Reflectivity with absorption and geometric_spreading')
+        self.__ax1.plot(self.T, self.Rg, linewidth=2, color='Crimson', label='Reflectivity with absorption and geometric_spreading')
         
-        self.ax01.legend(loc=1, fontsize=17)
+        self.__ax1.legend(loc=1, fontsize=17)
         
 
     def updateFDom(self, index):
-        self.fdom = index / 10
+        self.__fdom = index / 10
         self.draw01()
-        self.tabAtr('Dominant frequency Slider Label').setText(str(self.fdom))
+        self.tabAtr('Dominant frequency Slider Label').setText(str(self.__fdom))
         
     def updatedT(self, index):
-        self.dt = index / 10000
-        print(self.dt)
+        self.__dt = index / 10000
+        print(self.__dt)
         self.draw01()
-        self.tabAtr('dT Slider Label').setText(f"{self.dt:.4f}")
+        self.tabAtr('dT Slider Label').setText(f"{self.__dt:.4f}")
 
     @PlotInterface.canvasDraw(tab='Ex01')
     def drawAxes01(self):
-        self.ax01 = self.createAxes(
+        self.__ax1 = self.createAxes(
             self.tabAtr('Ex01Figure'),
             args={
                 'pos': 111, 
@@ -116,8 +114,8 @@ class SeismicExample01(PlotInterface):
                 'y': 1.05
             }
         )
-        # self.ax01.axis([0, self.tmax, -1, 1])  # Set axis limits
-        # self.ax01.axis([0, self.tmax, -.4, 0.1])  # Set axis limits
-        self.ax01.set_ylim([-0.4, 0.41])
-        self.ax01.set_xlim([0, 2.9])
+        # self.__ax1.axis([0, self.tmax, -1, 1])  # Set axis limits
+        # self.__ax1.axis([0, self.tmax, -.4, 0.1])  # Set axis limits
+        self.__ax1.set_ylim([-0.4, 0.41])
+        self.__ax1.set_xlim([0, 2.9])
         
