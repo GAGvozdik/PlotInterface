@@ -32,7 +32,7 @@ class GraphObjects(QWidget):
         ax.set_facecolor(self.graphColor)
         
         ax.spines[:].set_color(self.widgetColor)
-        ax.spines[:].set_linewidth(2.5)
+        ax.spines[:].set_linewidth(self.ticksWidth)
         
         ax.tick_params(axis='both', labelcolor=self.ticksColor, color=self.widgetColor, width=self.ticksWidth, length=6, labelsize=12)
         if args.get('grid', False):

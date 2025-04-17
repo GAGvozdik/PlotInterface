@@ -3,11 +3,12 @@ import time
 import numpy as np
 from PyQt5.QtCore import Qt, QDir
 from .graphObjects import GraphObjects
-from .graphObjects import GraphObjects
+from pathlib import Path
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QTabWidget, QPushButton, QVBoxLayout,
     QBoxLayout, QFileDialog, QMessageBox, QHBoxLayout, QLabel, QSlider,
-    QGridLayout, QGroupBox, QDial, QSizePolicy, QSpacerItem, QMenu
+    QGridLayout, QGroupBox, QDial, QSizePolicy, QSpacerItem, QMenu,
+    QRadioButton, QButtonGroup
 )
 
 class PlotInterface(GraphObjects):
@@ -28,22 +29,64 @@ class PlotInterface(GraphObjects):
         self.tabs.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.layout.addWidget(self.tabs, 0, 0)
 
-        self.windowColor = '#2E2E2E'   
-        self.widgetColor = '#6e6e6e'
-        self.graphColor = '#4c4c4c'
-        self.ticksColor = '#b5b5b5'
-        self.gridColor = '#6e6e6e'
-        self.ticksWidth = 2.5
+        # self.windowColor = '#2E2E2E'   
+        # self.widgetColor = '#6e6e6e'
+        # self.graphColor = '#4c4c4c'
+        # self.ticksColor = '#b5b5b5'
+        # self.gridColor = '#6e6e6e'
+        # self.ticksWidth = 2.5
         
-        # self.windowColor = 'white'   
-        # self.gridColor = 'grey'
-        # self.widgetColor = 'black'
-        # self.graphColor = 'white'
-        # self.ticksColor = 'black'
-        # self.ticksWidth = 1
+        self.windowColor = '#d6d6d6'   
+        self.gridColor = 'grey'
+        self.widgetColor = 'black'
+        self.graphColor = '#d6d6d6'
+        self.ticksColor = 'black'
+        self.ticksWidth = 1
 
         self.darkMode = True
         self.fileName = None
+
+        self.dark_mode = True  # Текущая тема
+
+        self.app = QApplication.instance()
+        
+
+
+    def initThemeSwitcher(self):
+        """Создание радиокнопок для переключения темы."""
+        themeBox = QGroupBox("Theme")
+        themeBox.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        themeLayout = QVBoxLayout()
+        themeBox.setLayout(themeLayout)
+
+        darkRadio = QRadioButton("Dark")
+        lightRadio = QRadioButton("Light")
+        darkRadio.setChecked(True)
+
+        themeGroup = QButtonGroup()
+        themeGroup.addButton(darkRadio)
+        themeGroup.addButton(lightRadio)
+
+        darkRadio.toggled.connect(self.switchTheme)
+        lightRadio.toggled.connect(self.switchTheme)
+
+        themeLayout.addWidget(darkRadio)
+        themeLayout.addWidget(lightRadio)
+            
+        return themeBox
+        
+    def switchTheme(self):
+        sender = self.sender()
+        if isinstance(sender, QRadioButton):
+            theme_name = sender.text().lower()
+            qss_path = Path(__file__).parent.parent / "styles" / f"{theme_name}Theme.qss"
+            
+            try:
+                with open(qss_path, "r") as f:
+                    QApplication.instance().setStyleSheet(f.read())
+            except Exception as e:
+                print(f"Ошибка при загрузке стиля: {e}")
+
 
     def createTab(self, name):
         tab = QWidget()
@@ -54,30 +97,14 @@ class PlotInterface(GraphObjects):
         self.tabs.addTab(tab, name)
         layout.setObjectName(name)
 
-        # # Graph box: ширина зависит от растягивания, не задаём фиксированный размер
-        # graphBox = self.createBox(layout, "Graph box", [0, 0, 0, 2])
-        # graphBox.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        # setattr(self, f"{name}GraphBox", graphBox)
-
-        # # Slider box — с фиксированной шириной
-        # sliderBox = self.createBox(layout, "Sliders box", [0, 2, 1, 1])
-        # sliderBox.setFixedWidth(300)
-        # sliderBox.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
-        # setattr(self, f"{name}SliderBox", sliderBox)
-
-        graphBox = self.createBox(layout, "Graph box", [0, 0, 1, 2])
+        graphBox = self.createBox(layout, "Graph box", [0, 0, 0, 2])
         graphBox.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         setattr(self, f"{name}GraphBox", graphBox)
-        sliderBox = self.createBox(layout, "Sliders box", [0, 2, 1, 1])
+
+        sliderBox = self.createBox(layout, "Sliders box", [0, 2])
         sliderBox.setFixedWidth(300)
         sliderBox.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
         setattr(self, f"{name}SliderBox", sliderBox)
-        # Вниз sliderBox'а — spacer
-        spacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        sliderBox.layout().addItem(spacer)
-
-
-
 
         figure, canvas = self.createFigure(name, graphBox)
         setattr(self, f"{name}Figure", figure)
@@ -95,7 +122,9 @@ class PlotInterface(GraphObjects):
         loadButton.clicked.connect(self.get_file_way)
         self.addToBox(sliderBox, loadButton)
 
-        # Spacer внизу для отступа
+        themeBox = self.initThemeSwitcher()
+        self.addToBox(sliderBox, themeBox)
+
         spacer = QSpacerItem(20, 60, QSizePolicy.Minimum, QSizePolicy.Expanding)
         sliderBox.layout().addItem(spacer)
 

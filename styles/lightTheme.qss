@@ -1,0 +1,132 @@
+/* dark_theme.qss */
+
+
+SinePlot {
+    background-color: rgb(54, 157, 180);
+}
+
+QLabel {
+    font-family: Arial;
+    font-size: 16px;
+    color: rgb(39, 39, 39);
+}
+
+QPushButton {
+    background-color: #2e2e2e; 
+    color: rgb(39, 39, 39); 
+
+    border: 3px solid rgb(163, 163, 163);
+    border-radius: 15px;
+    font-size: 22px;
+    padding: 10px;
+}
+
+QPushButton:hover {
+    background-color: rgb(214, 214, 214); 
+}
+
+QPushButton:pressed {
+    background-color: #4a4a4a; 
+}
+
+
+
+QWidget {
+    background-color: rgb(214, 214, 214);  /* Цвет фона для виджетов */
+    color:rgb(39, 39, 39);              /* Цвет текста */
+}
+
+QGroupBox {
+    border: 3px solid rgb(163, 163, 163);
+    color: rgb(39, 39, 39); /* Цвет текста вкладки */               
+                 
+    padding: 10px; 
+    padding-top: 25px; 
+
+    border-radius: 15px;
+    font-size: 22px;
+}
+
+QGroupBox::title {
+
+}
+
+
+QSlider {
+    background: rgb(214, 214, 214);     
+}
+
+
+
+QSlider::groove:horizontal { 
+	background-color: rgb(201, 201, 201);
+	border: 0px solid #424242; 
+	height: 10px; 
+	border-radius: 4px;
+}
+
+QSlider::handle:horizontal { 
+
+    background: CornflowerBlue;         
+  
+	border: 2px solid CornflowerBlue; 
+	width: 16px; 
+	height: 20px; 
+	line-height: 20px; 
+	margin-top: -5px; 
+	margin-bottom: -5px; 
+	border-radius: 10px; 
+}
+
+QSlider::handle:horizontal:hover { 
+	border-radius: 10px;
+}
+
+QLabel {
+    color: rgb(39, 39, 39);              /* Цвет текста меток */
+}
+
+
+QTabWidget::pane {
+    background-color: rgb(214, 214, 214); /* Цвет фона для вкладок */
+    border: 3px solid rgb(163, 163, 163);
+    border-radius: 10px;  
+}
+
+QTabBar::tab {
+    background-color: rgb(214, 214, 214); /* Цвет фона вкладки */
+    color: rgb(39, 39, 39); /* Цвет текста вкладки */
+    padding: 10px;
+    margin-right: 10px;
+    margin-bottom: 6px;
+    margin-top: 6px;
+    border-radius: 10px;  
+    width: 150px;
+    height: 30px;
+    border: 3px solid rgb(163, 163, 163);
+    font-size: 25px;
+}
+
+
+QTabBar QToolButton { /* the scroll buttons are tool buttons */
+    background-color:rgb(214, 214, 214);
+    border: 3px solid rgb(163, 163, 163);
+    border-radius: 5px;  
+
+   
+    width: 20px;
+
+    margin: 6px;
+    margin-right: 0px;
+    margin-left: 0px;
+    height: 5px;
+}
+
+QTabBar::scroller{ 
+    margin: 4px;
+    width: 90px;
+}
+
+QTabBar::tab:selected {
+    background-color:rgb(169, 169, 169); /* Цвет выбранной вкладки */
+}

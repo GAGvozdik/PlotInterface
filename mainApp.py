@@ -132,13 +132,17 @@ class MainApp(AllSeismicExamples):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    # with open("styles/darkTheme.qss", "r") as f:
     with open(Path(__file__).parent.resolve()  / "styles" / "darkTheme.qss", "r") as f:
         style = f.read()
         app.setStyleSheet(style)
+    # with open(Path(__file__).parent.resolve()  / "styles" / "lightTheme.qss", "r") as f:
+    #     style = f.read()
+    #     app.setStyleSheet(style)
     # with open(resource_path("styles/darkTheme.qss"), "r") as f:
     #     app.setStyleSheet(f.read())
     window = MainApp()
     window.show()
     sys.exit(app.exec_())
+    
+    
 
