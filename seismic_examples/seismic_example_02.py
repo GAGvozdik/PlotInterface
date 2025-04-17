@@ -40,14 +40,14 @@ class SeismicExample02(PlotInterface):
 
         self.__tab = self.createTab('Ex02')
 
-        self.createQDial(
+        self.createSlider(
             1, 3000, init=int(10 * self.__fdom),
             func=self.__updateFDom, 
             name='Dominant frequency 2', 
             tab=self.__tab,
             label=True
         )
-        self.tabAtr('Dominant frequency 2 QDial Label').setText(str(self.__fdom))
+        self.tabAtr('Dominant frequency 2 Slider Label').setText(str(self.__fdom))
 
         self.createQDial(
             20, 500, init=int(self.__dt * 10000),
@@ -92,7 +92,7 @@ class SeismicExample02(PlotInterface):
     def __updateFDom(self, index):
         self.__fdom = index / 10
         self.__draw()
-        self.tabAtr('Dominant frequency 2 QDial Label').setText(str(self.__fdom))
+        self.tabAtr('Dominant frequency 2 Slider Label').setText(str(self.__fdom))
 
     def __updatedT(self, index):
         self.__dt = index / 10000

@@ -2,7 +2,7 @@
 
 
 SinePlot {
-    background-color: rgb(54, 157, 180);
+    background-color: rgb(26, 83, 149);
 }
 
 QLabel {
@@ -59,7 +59,7 @@ QSlider {
 
 
 QSlider::groove:horizontal { 
-	background-color: rgb(201, 201, 201);
+	background-color: rgb(161, 161, 161);
 	border: 0px solid #424242; 
 	height: 10px; 
 	border-radius: 4px;
@@ -130,3 +130,38 @@ QTabBar::scroller{
 QTabBar::tab:selected {
     background-color:rgb(169, 169, 169); /* Цвет выбранной вкладки */
 }
+
+
+QRadioButton {
+    spacing: 8px;
+    font-size: 22px;
+    color: rgb(39, 39, 39);
+    padding: 5px;
+}
+
+/* Кнопка — кружок */
+QRadioButton::indicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 12px;
+    border: 3px solid rgb(163, 163, 163);
+    background-color: rgb(214, 214, 214);
+}
+
+/* Наведение мыши */
+QRadioButton::indicator:hover {
+    border: 3px solid rgb(26, 83, 149); /* акцент как SinePlot */
+}
+
+/* Активное состояние (отмечено) */
+QRadioButton::indicator:checked {
+    background-color: rgb(26, 83, 149);
+    border: 3px solid rgb(26, 83, 149);
+}
+
+/* Отключено */
+QRadioButton::indicator:disabled {
+    background-color: rgb(180, 180, 180);
+    border: 3px solid rgb(163, 163, 163);
+}
+

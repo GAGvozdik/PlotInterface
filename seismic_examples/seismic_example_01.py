@@ -30,7 +30,9 @@ class SeismicExample01(PlotInterface):
         
         self.__dt = 0.015  # Sampling interval in seconds
         self.tmax = 2  # Total modeled time in seconds
-
+        self.__yScale = 0.4
+        self.__xScale = 2.9
+        
         # Define the dominant frequency for absorption
         self.__fdom = 20  # Dominant frequency in Hz
 
@@ -54,13 +56,30 @@ class SeismicExample01(PlotInterface):
         )
         self.tabAtr('dT Slider Label').setText(str(self.__dt))
         
+        self.createSlider(
+            1, 500, init=int(self.__yScale * 400),
+            func=self.__updatedYScale, 
+            name='Y scale 1', 
+            tab=self.__tab,
+            label=True
+        )
+        self.tabAtr('Y scale 1 Slider Label').setText(str(self.__yScale))
+        
+        self.createSlider(
+            50, 350, init=int(self.__xScale * 100),
+            func=self.__updatedXScale, 
+            name='X scale 1', 
+            tab=self.__tab,
+            label=True
+        )
+        self.tabAtr('X scale 1 Slider Label').setText(str(self.__yScale))
 
         self.drawAxes01()
-        self.draw01()
+        self.__draw()
 
         
     @PlotInterface.canvasDraw(tab='Ex01')
-    def draw01(self):
+    def __draw(self):
         self.__ax1.remove()
         self.drawAxes01()
         
@@ -80,24 +99,35 @@ class SeismicExample01(PlotInterface):
         # Plot the original and modified reflectivity signals
         self.__ax1.plot(self.T, self.RM, linewidth=6, color='orange', label='Reflectivity with Multiples')
 
-        self.__ax1.plot(self.T, self.RL, linewidth=3, color='darkcyan', label='Reflectivity with Multiples and absorption')
+        self.__ax1.plot(self.T, self.RL, linewidth=6, color='darkcyan', label='Reflectivity with Multiples and absorption')
         
-        self.__ax1.plot(self.T, self.Rg, linewidth=2, color='Crimson', label='Reflectivity with absorption and geometric_spreading')
+        self.__ax1.plot(self.T, self.Rg, linewidth=6, color='Crimson', label='Reflectivity with absorption and geometric_spreading')
         
         self.__ax1.legend(loc=1, fontsize=17)
         
 
     def updateFDom(self, index):
         self.__fdom = index / 10
-        self.draw01()
+        self.__draw()
         self.tabAtr('Dominant frequency Slider Label').setText(str(self.__fdom))
         
     def updatedT(self, index):
         self.__dt = index / 10000
         print(self.__dt)
-        self.draw01()
+        self.__draw()
         self.tabAtr('dT Slider Label').setText(f"{self.__dt:.4f}")
-
+        
+    def __updatedYScale(self, index):
+        self.__yScale = index / 400
+        self.__draw()
+        self.tabAtr('Y scale 1 Slider Label').setText(str(self.__yScale))
+        
+    def __updatedXScale(self, index):
+        self.__xScale = index / 100
+        self.__draw()
+        self.tabAtr('X scale 1 Slider Label').setText(str(self.__xScale))
+        
+        
     @PlotInterface.canvasDraw(tab='Ex01')
     def drawAxes01(self):
         self.__ax1 = self.createAxes(
@@ -116,6 +146,6 @@ class SeismicExample01(PlotInterface):
         )
         # self.__ax1.axis([0, self.tmax, -1, 1])  # Set axis limits
         # self.__ax1.axis([0, self.tmax, -.4, 0.1])  # Set axis limits
-        self.__ax1.set_ylim([-0.4, 0.41])
-        self.__ax1.set_xlim([0, 2.9])
+        self.__ax1.set_ylim([-self.__yScale, self.__yScale])
+        self.__ax1.set_xlim([0.1, self.__xScale])
         

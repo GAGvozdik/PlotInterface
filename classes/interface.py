@@ -29,19 +29,12 @@ class PlotInterface(GraphObjects):
         self.tabs.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.layout.addWidget(self.tabs, 0, 0)
 
-        # self.windowColor = '#2E2E2E'   
-        # self.widgetColor = '#6e6e6e'
-        # self.graphColor = '#4c4c4c'
-        # self.ticksColor = '#b5b5b5'
-        # self.gridColor = '#6e6e6e'
-        # self.ticksWidth = 2.5
-        
-        self.windowColor = '#d6d6d6'   
-        self.gridColor = 'grey'
-        self.widgetColor = 'black'
-        self.graphColor = '#d6d6d6'
-        self.ticksColor = 'black'
-        self.ticksWidth = 1
+        self.windowColor = '#2E2E2E'   
+        self.widgetColor = '#6e6e6e'
+        self.graphColor = '#4c4c4c'
+        self.ticksColor = '#b5b5b5'
+        self.gridColor = '#6e6e6e'
+        self.ticksWidth = 2.5
 
         self.darkMode = True
         self.fileName = None
@@ -74,18 +67,66 @@ class PlotInterface(GraphObjects):
         themeLayout.addWidget(lightRadio)
             
         return themeBox
-        
+            
     def switchTheme(self):
         sender = self.sender()
         if isinstance(sender, QRadioButton):
             theme_name = sender.text().lower()
             qss_path = Path(__file__).parent.parent / "styles" / f"{theme_name}Theme.qss"
-            
+
+            # Обновляем цвета для matplotlib
+            if theme_name == "dark":
+                self.windowColor = '#2E2E2E'   
+                self.widgetColor = '#6e6e6e'
+                self.graphColor = '#4c4c4c'
+                self.ticksColor = '#b5b5b5'
+                self.gridColor = '#6e6e6e'
+                self.ticksWidth = 2.5
+            else:
+                self.windowColor = '#d6d6d6'   
+                self.gridColor = 'grey'
+                self.widgetColor = 'black'
+                self.graphColor = '#d6d6d6'
+                self.ticksColor = 'black'
+                self.ticksWidth = 1
+
+            # Применяем QSS стиль
             try:
                 with open(qss_path, "r") as f:
                     QApplication.instance().setStyleSheet(f.read())
             except Exception as e:
                 print(f"Ошибка при загрузке стиля: {e}")
+
+            # Обновляем фигуры и canvas
+            for i in range(self.tabs.count()):
+                tab_name = self.tabs.tabText(i)
+                fig = getattr(self, f"{tab_name}Figure", None)
+                canvas = getattr(self, f"{tab_name}Canvas", None)
+
+                if fig is not None and canvas is not None:
+                    fig.patch.set_facecolor(self.windowColor)
+                    for ax in fig.axes:
+                        self.updateAxesStyle(ax)
+                    canvas.draw()
+                    
+    def updateAxesStyle(self, ax):
+        ax.set_facecolor(self.graphColor)
+        ax.title.set_color(self.ticksColor)
+        ax.xaxis.label.set_color(self.ticksColor)
+        ax.yaxis.label.set_color(self.ticksColor)
+
+        for spine in ax.spines.values():
+            spine.set_color(self.widgetColor)
+            spine.set_linewidth(self.ticksWidth)
+
+        ax.tick_params(axis='both', labelcolor=self.ticksColor,
+                    color=self.widgetColor, width=self.ticksWidth, length=6, labelsize=12)
+
+        # Обновим сетку, если она уже была включена
+        gridlines = ax.get_xgridlines() + ax.get_ygridlines()
+        if any(line.get_visible() for line in gridlines):
+            ax.grid(True, color=self.gridColor)
+
 
 
     def createTab(self, name):

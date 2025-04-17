@@ -66,6 +66,7 @@ class Example9(PlotInterface):
         self.ax09 = self.createPolarAxes(self.tabAtr('Ex09Figure'), 111)
 
         plt.sca(self.ax09)
+        
         self.rose09 = gn.covModel.variogramExp2D_rose(
             self.x09, 
             self.v09, 
@@ -74,6 +75,7 @@ class Example9(PlotInterface):
             r_ncla=r_ncla, 
             phi_ncla=phi_ncla,
             cmap="viridis",
+            
         )
 
     def updateRmax09(self, index):
