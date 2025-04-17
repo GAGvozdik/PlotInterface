@@ -18,7 +18,7 @@ from .seismic_functions.add_geometric_spreading import add_geometric_spreading
 from matplotlib.colors import ListedColormap
 
 # INTERFACE 4
-class SeismicExample04(PlotInterface):
+class SeismicExample05(PlotInterface):
     def __init__(self):
         super().__init__()
 
@@ -28,47 +28,47 @@ class SeismicExample04(PlotInterface):
         self.__fdom = 20
         self.__leftx = 0.2
         
-        self.__tab = self.createTab('Ex04')
+        self.__tab = self.createTab('Ex05')
 
         self.createSlider(
             25, 3000, init=int(10 * self.__fdom),
             func=self.__updateFDom, 
-            name='Dominant frequency 4', 
+            name='Dominant frequency 5', 
             tab=self.__tab,
             label=True
         )
-        self.tabAtr('Dominant frequency 4 Slider Label').setText(str(self.__fdom))
+        self.tabAtr('Dominant frequency 5 Slider Label').setText(str(self.__fdom))
         
         self.createSlider(
             10, 500, init=int(self.__dt * 10000),
             func=self.__updatedT, 
-            name='dT 4', 
+            name='dT 5', 
             tab=self.__tab,
             label=True
         )
-        self.tabAtr('dT 4 Slider Label').setText(str(self.__dt))
+        self.tabAtr('dT 5 Slider Label').setText(str(self.__dt))
         
         self.createSlider(
             5, 20, init=int(self.__leftx * 50),
             func=self.__updatedLeftX, 
-            name='Left Xlim 4', 
+            name='Left Xlim 5', 
             tab=self.__tab,
             label=True
         )
-        self.tabAtr('Left Xlim 4 Slider Label').setText(str(self.__leftx))
+        self.tabAtr('Left Xlim 5 Slider Label').setText(str(self.__leftx))
         
         self.__drawAxes()
         self.__draw()
         
 
-    @PlotInterface.canvasDraw(tab='Ex04')
+    @PlotInterface.canvasDraw(tab='Ex05')
     def __draw(self):
         self.__ax1.remove()
         self.__ax2.remove()
         self.__ax3.remove()
         self.__drawAxes()
         
-        # Set random seed
+                # Set random seed
         np.random.seed(10)
         self.__ax1.axis([-0.7, 0.7, -0.005, self.__leftx])
         self.__ax2.axis([-0.7, 0.7, -0.005, self.__leftx])
@@ -100,24 +100,24 @@ class SeismicExample04(PlotInterface):
     def __updatedLeftX(self, index):
         self.__leftx = index / 50
         self.__draw()
-        self.tabAtr('Left Xlim 4 Slider Label').setText(str(self.__leftx))
+        self.tabAtr('Left Xlim 5 Slider Label').setText(str(self.__leftx))
         
         
     def __updateFDom(self, index):
         self.__fdom = index / 10
         self.__draw()
-        self.tabAtr('Dominant frequency 4 Slider Label').setText(str(self.__fdom))
+        self.tabAtr('Dominant frequency 5 Slider Label').setText(str(self.__fdom))
         
     def __updatedT(self, index):
         self.__dt = index / 10000
         self.__draw()
-        self.tabAtr('dT 4 Slider Label').setText(f"{self.__dt:.4f}")
+        self.tabAtr('dT 5 Slider Label').setText(f"{self.__dt:.4f}")
 
 
-    @PlotInterface.canvasDraw(tab='Ex04')
+    @PlotInterface.canvasDraw(tab='Ex05')
     def __drawAxes(self):
         
-        self.tabAtr('Ex04Figure').subplots_adjust(
+        self.tabAtr('Ex05Figure').subplots_adjust(
             left=0.07,    
             right=0.92,   
             top=0.92,     
@@ -135,7 +135,7 @@ class SeismicExample04(PlotInterface):
         axes = []
         for i, title in enumerate(titles, start=1):
             ax = self.createAxes(
-                self.tabAtr('Ex04Figure'),
+                self.tabAtr('Ex05Figure'),
                 args={
                     'pos': 130 + i,  
                     'name': title,
@@ -157,6 +157,5 @@ class SeismicExample04(PlotInterface):
 
 
 
-        
 
 

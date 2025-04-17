@@ -28,7 +28,7 @@ class SeismicExample01(PlotInterface):
         self.q = np.array([50, 50, 50, 50, 50, 50])  # Quality factor
         self.thk = np.array([100, 70, 100, 250, 300])  # Thickness in meters
         
-        self.__dt = 0.002  # Sampling interval in seconds
+        self.__dt = 0.015  # Sampling interval in seconds
         self.tmax = 2  # Total modeled time in seconds
 
         # Define the dominant frequency for absorption
@@ -36,7 +36,7 @@ class SeismicExample01(PlotInterface):
 
         self.__tab = self.createTab('Ex01')
 
-        self.__slider1 = self.createSlider(
+        self.createSlider(
             1, 3000, init=int(10 * self.__fdom),
             func=self.updateFDom, 
             name='Dominant frequency', 
@@ -45,7 +45,7 @@ class SeismicExample01(PlotInterface):
         )
         self.tabAtr('Dominant frequency Slider Label').setText(str(self.__fdom))
         
-        self.__slider2 = self.createSlider(
+        self.createSlider(
             20, 500, init=int(self.__dt * 10000),
             func=self.updatedT, 
             name='dT', 

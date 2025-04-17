@@ -4,18 +4,19 @@ from tqdm import tqdm
 
 @work_time()
 def add_transmission_lossed (R, R0 = 0):
-    # this function add multiples to a synthetic reflectivity signal and,
-    # possibly, the trasmission coefficient of the surface
-    # Inputs
-    #  R     Reflectivity; it is supposed to be sampled at time intervals given by
-    #        dt=2*thick_i/v_i, i.e. the layer thicknesses are not constant
-    #  R0    surface reflectivity [optional, default=0]
-    #  Output
-    #  RTL   Reflectivity with transmission losses, dimension of R
-    # 
-
-    # %let's define the default value for R0 when it is not passed
-    # When you did not define R0, it will set as 0
+    """
+    this function add multiples to a synthetic reflectivity signal and,
+    possibly, the trasmission coefficient of the surface
+    Inputs:
+        - R: Reflectivity; it is supposed to be sampled at time intervals given by
+           dt=2*thick_i/v_i, i.e. the layer thicknesses are not constant
+        - R0: surface reflectivity [optional, default=0]
+    Output:
+        - RTL: Reflectivity with transmission losses, dimension of R
+    let's define the default value for R0 when it is not passed
+    When you did not define R0, it will set as 0
+    """
+    
     N,J = R.shape if len(R.shape) > 1 else (len(R), 1)
     if J > N:
         R = R.T

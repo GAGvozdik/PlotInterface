@@ -4,6 +4,7 @@ import sys
 import pandas as pd
 import geone as gn
 from pathlib import Path
+import os
 
 from classes.examples import AllExamples
 from seismic_examples.all_seismic_examples import AllSeismicExamples
@@ -17,41 +18,46 @@ from PyQt5.QtWidgets import QApplication, QWidget, QTabWidget
 from PyQt5.QtWidgets import QGridLayout
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QFileDialog
 
+def resource_path(relative_path):
+    """Возвращает абсолютный путь к ресурсу (работает и в .exe, и в IDE)."""
+    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(base_path, relative_path)
+
 # class MainApp(AllExamples):
 class MainApp(AllSeismicExamples):
     def __init__(self):
         super().__init__()
 
-        self.tab18 = self.createTab('Ex18')
+        self.__tab = self.createTab('Ex18')
 
-        self.__slider = self.createSlider(
+        self.createSlider(
             1, 3000, init=3000,
-            func=self.updatePoint18, 
+            func=self.__updatePoint, 
             name='Slider value', 
-            tab=self.tab18,
+            tab=self.__tab,
             label=True
         )   
 
-        self.__qdial = self.createQDial(
+        self.createQDial(
             1, 3000, 3000, 
-            func=self.updateScatter18, 
+            func=self.__updateScatter, 
             name='QDial value', 
-            tab=self.tab18,
+            tab=self.__tab,
             label=True
         )
         
-        self.n18 = 3000
-        self.x18 = [np.random.rand() for i in range(self.n18)]
-        self.y18 = [np.random.rand() for i in range(self.n18)]
-        self.c18 = [np.random.rand() for i in range(self.n18)]
+        self.__n = 3000
+        self.__x = [np.random.rand() for i in range(self.__n)]
+        self.__y = [np.random.rand() for i in range(self.__n)]
+        self.__c = [np.random.rand() for i in range(self.__n)]
         
-        self.drawAxes18()
-        self.draw18()
-        self.drawColorbar18()
+        self.__drawAxes()
+        self.__draw()
+        self.__drawColorbar()
 
     @AllExamples.canvasDraw(tab='Ex18')
-    def drawAxes18(self):
-        self.ax18 = self.createAxes(
+    def __drawAxes(self):
+        self.__ax = self.createAxes(
             self.tabAtr('Ex18Figure'),
             args={
                 'pos': 111, 
@@ -61,63 +67,63 @@ class MainApp(AllSeismicExamples):
                 'grid': True
             }
         )
-        self.ax18.set_xlim([-0.05, 1.05])
-        self.ax18.set_ylim([-0.05, 1.05])
+        self.__ax.set_xlim([-0.05, 1.05])
+        self.__ax.set_ylim([-0.05, 1.05])
         
     @AllExamples.canvasDraw(tab='Ex18')
-    def draw18(self):
-        self.scatterArgsEx18 = {
-            'x': self.x18,
-            'y': self.y18,
-            'c': self.c18,
+    def __draw(self):
+        self.__scatterArgsEx = {
+            'x': self.__x,
+            'y': self.__y,
+            'c': self.__c,
             's': 150,
             'cmap': ListedColormap(["Crimson", "orange", 'lightblue', 'azure', 'coral']),
             'zorder': 4
         }
-        self.points18 = self.ax18.scatter(**self.scatterArgsEx18)
+        self.__points = self.__ax.scatter(**self.__scatterArgsEx)
 
     @AllExamples.canvasDraw(tab='Ex18')
-    def drawColorbar18(self):
+    def __drawColorbar(self):
         self.createColorbar(
             self.tabAtr('Ex18Figure'), 
-            self.points18, 
+            self.__points, 
             name='Quantiles', 
-            cmap=self.scatterArgsEx18['cmap']
+            cmap=self.__scatterArgsEx['cmap']
         )
         
-    def updateScatter18(self, index):
-        if self.n18 < index:
-            for i in range(index - self.n18):
-                self.x18.append(np.random.rand())
-                self.y18.append(np.random.rand())
-                self.c18.append(np.random.rand())
+    def __updateScatter(self, index):
+        if self.__n < index:
+            for i in range(index - self.__n):
+                self.__x.append(np.random.rand())
+                self.__y.append(np.random.rand())
+                self.__c.append(np.random.rand())
         else:
-            for i in range(self.n18 - index):
-                self.x18.pop(1)
-                self.y18.pop(1)
-                self.c18.pop(1)
-        self.n18 = index
-        self.points18.remove()
-        self.draw18()
+            for i in range(self.__n - index):
+                self.__x.pop(1)
+                self.__y.pop(1)
+                self.__c.pop(1)
+        self.__n = index
+        self.__points.remove()
+        self.__draw()
         self.tabAtr('QDial value QDial Label').setText(str(index))
         self.tabAtr('Slider value slider').setValue(index)
         self.tabAtr('Slider value Slider Label').setText(str(index))
 
     # @AllExamples.canvasDraw(tab='Ex18')
-    def redraw18(self):
+    def __redraw(self):
         # self.tabAtr('Ex18Figure').clf()
-        # self.draw18()
+        # self.__draw()
         
-        # self.points18.remove()
+        # self.__points.remove()
         # x = [np.random.rand() for i in range(self.n18)]
         # y = [np.random.rand() for i in range(self.n18)]
-        # self.points18.set_offsets(np.c_[x, y])
+        # self.__points.set_offsets(np.c_[x, y])
         pass
 
-    def loadFile18(self):
+    def __loadFile(self):
         pass
     
-    def updatePoint18(self, index):
+    def __updatePoint(self, index):
         
         self.tabAtr('QDial value QDial Label').setText(str(index))
         self.tabAtr('QDial value QDial').setValue(index)
@@ -130,6 +136,8 @@ if __name__ == "__main__":
     with open(Path(__file__).parent.resolve()  / "styles" / "darkTheme.qss", "r") as f:
         style = f.read()
         app.setStyleSheet(style)
+    # with open(resource_path("styles/darkTheme.qss"), "r") as f:
+    #     app.setStyleSheet(f.read())
     window = MainApp()
     window.show()
     sys.exit(app.exec_())

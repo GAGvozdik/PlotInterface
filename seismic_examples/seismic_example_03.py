@@ -22,20 +22,20 @@ class SeismicExample03(PlotInterface):
     def __init__(self):
         super().__init__()
 
-        # Define the input parameters
-        self.v = np.array([1000, 2000, 1500, 5000, 7000, 2500])  # Velocity in m/s
-        self.rho = np.array([2500, 2700, 2000, 4500, 4800, 2900])  # Density in kg/m^3
-        self.q = np.array([50, 50, 50, 50, 50, 50])  # Quality factor
-        self.thk = np.array([100, 70, 100, 250, 300])  # Thickness in meters
-        
-        self.__dt = 0.3  # Sampling interval in seconds
-        self.tmax = 2  # Total modeled time in seconds
-        self.__fdom = 20  # Dominant frequency in Hz
+        np.random.seed(10)
+        self.__dt = 0.001
+        self.__tmax = 0.1
+        self.__fdom = 20
 
+        self.__rho = (np.random.rand(50, 1) * 4 + 2) * 1000  
+        self.__v = np.random.rand(50, 1) * 1000 + 2000  
+        self.__q = np.random.rand(50, 1) * 90 + 10  
+        self.__thk = np.random.rand(49, 1) * 5 + 25  
+        self.__leftx = 2
         self.__tab = self.createTab('Ex03')
 
-        self.__slider1 = self.createSlider(
-            1, 3000, init=int(10 * self.__fdom),
+        self.createSlider(
+            25, 3000, init=int(10 * self.__fdom),
             func=self.__updateFDom, 
             name='Dominant frequency 3', 
             tab=self.__tab,
@@ -43,14 +43,23 @@ class SeismicExample03(PlotInterface):
         )
         self.tabAtr('Dominant frequency 3 Slider Label').setText(str(self.__fdom))
         
-        self.__slider2 = self.createSlider(
-            20, 500, init=int(self.__dt * 10000),
+        self.createSlider(
+            10, 500, init=int(self.__dt * 10000),
             func=self.__updatedT, 
             name='dT 3', 
             tab=self.__tab,
             label=True
         )
         self.tabAtr('dT 3 Slider Label').setText(str(self.__dt))
+        
+        self.createSlider(
+            5, 100, init=int(self.__leftx * 50),
+            func=self.__updatedLeftX, 
+            name='Left Xlim 3', 
+            tab=self.__tab,
+            label=True
+        )
+        self.tabAtr('Left Xlim 3 Slider Label').setText(str(self.__leftx))
         
         self.__drawAxes()
         self.__draw()
@@ -60,20 +69,30 @@ class SeismicExample03(PlotInterface):
     def __draw(self):
         self.__ax1.remove()
         self.__ax2.remove()
-        self.__ax3.remove()
-        self.__ax4.remove()
         self.__drawAxes()
+                
+        self.__ax1.axis([-0.55, 0.55, 0, self.__leftx])
+        self.__ax2.axis([-0.55, 0.55, 0, self.__leftx])
         
-        self.R, self.V, self.RHO, self.Q, self.THK, self.T = reflec_from_model(self.rho, self.v, self.q, self.thk, self.__dt, self.tmax)
+        self.__wavem, self.__t_caus = wavemin(self.__dt, self.__fdom, self.__tmax)
+        self.__R, self.__V, self.__RHO, self.__Q, self.__THK, self.__T = reflec_from_model(self.__rho, self.__v, self.__q, self.__thk, self.__dt, self.__tmax)
+        # R = add_multiples(R, type=1, R0=-0.5)
+        # Rloss = add_transmission_lossed(R, R0 = 0) 
+        
+        # self.__fdom = 20  
+        self.__RL = absorption(self.__R, self.__Q, self.__dt, self.__fdom)
+        self.__Rg = add_geometric_spreading(self.__RL, self.__THK) 
 
-        self.RM = add_multiples(self.R, type=1, R0=-0.5)
-        self.RL = absorption(self.RM, self.Q, self.__dt, self.__fdom) # do you know why here is RM? 
-        self.Rg = add_geometric_spreading(self.RL, self.THK) 
+        self.__RASW = convm(self.__R, self.__wavem)
 
-        self.__ax1.plot(self.R, self.T, linewidth=3, color='darkcyan', label='Original Reflectivity')
-        self.__ax2.plot(self.RM, self.T, linewidth=3, color='orange', label='Reflectivity with Multiples')
-        self.__ax3.plot(self.RL, self.T, linewidth=3, color='Crimson', label='Reflectivity with Multiples and absorption')
-        self.__ax4.plot(self.Rg, self.T, linewidth=1, color='mediumseagreen', label='Reflectivity with absorption and geometric_spreading')
+        self.__ax1.plot(self.__R, self.__T, linewidth=3, color='darkcyan', label='Original Reflectivity')
+        self.__ax2.plot(self.__RASW, self.__T, linewidth=3, color='orange', label='Reflectivity with convolution')
+
+        
+    def __updatedLeftX(self, index):
+        self.__leftx = index / 50
+        self.__draw()
+        self.tabAtr('Left Xlim 3 Slider Label').setText(str(self.__leftx))
         
         
     def __updateFDom(self, index):
@@ -99,72 +118,29 @@ class SeismicExample03(PlotInterface):
             hspace=0.4    
         )
 
-        self.__ax1 = self.createAxes(
-            self.tabAtr('Ex03Figure'),
-            args={
-                'pos': 141, 
-                'name': 'Original Reflectivity',
-                'xAxName': 'Amplitude',
-                'yAxName': 'Time (s)', 
-                'grid': True,
-                'fontsize': 26, 
-                'fontweight': 'bold', 
-                'loc': 'center', 
-                'y': 1.05
-            }
-        )
-        self.__ax1.axis([-0.4, 0.4,-0.08, self.tmax])
-        
-        self.__ax2 = self.createAxes(
-            self.tabAtr('Ex03Figure'),
-            args={
-                'pos': 142, 
-                'name': 'with Multiples',
-                'xAxName': 'Amplitude',
-                'yAxName': 'Time (s)', 
-                'grid': True,
-                'fontsize': 26, 
-                'fontweight': 'bold', 
-                'loc': 'center', 
-                'y': 1.05
-            }
-        )
-        self.__ax2.axis([-0.4, 0.4,-0.08, self.tmax])
-        
-        self.__ax3 = self.createAxes(
-            self.tabAtr('Ex03Figure'),
-            args={
-                'pos': 143, 
-                'name': 'Multiples & absorption',
-                'xAxName': 'Amplitude',
-                'yAxName': 'Time (s)', 
-                'grid': True,
-                'fontsize': 26, 
-                'fontweight': 'bold', 
-                'loc': 'center', 
-                'y': 1.05
-            }
-        )
-        self.__ax3.axis([-0.4, 0.4,-0.08, self.tmax])
-        
-        self.__ax4 = self.createAxes(
-            self.tabAtr('Ex03Figure'),
-            args={
-                'pos': 144, 
-                'name': 'Absorption & geometric_spreading',
-                'xAxName': 'Amplitude',
-                'yAxName': 'Time (s)', 
-                'grid': True,
-                'fontsize': 26, 
-                'fontweight': 'bold', 
-                'loc': 'center', 
-                'y': 1.05
-            }
-        )
-        self.__ax4.axis([-0.005, 0.005, -0.08, self.tmax])
-        self.__ax4.tick_params(axis='both', labelsize=10)
-        
+        titles = [
+            'Original Reflectivity',
+            'Reflectivity with convolution'
+        ]
 
+        axes = []
+        for i, title in enumerate(titles, start=1):
+            ax = self.createAxes(
+                self.tabAtr('Ex03Figure'),
+                args={
+                    'pos': 120 + i,  
+                    'name': title,
+                    'xAxName': 'Amplitude',
+                    'yAxName': 'Time (s)',
+                    'grid': True,
+                    'fontsize': 26,
+                    'fontweight': 'bold',
+                    'loc': 'center',
+                    'y': 1.05
+                }
+            )
+            # ax.axis([-0.4, 0.4, -0.08, self.tmax])
+            ax.axis([-0.55, 0.5, 0, 2])  # Set axis limits
+            axes.append(ax)
 
-
-        
+        self.__ax1, self.__ax2 = axes
