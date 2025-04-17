@@ -49,7 +49,7 @@ class SeismicExample04(PlotInterface):
         self.tabAtr('dT 4 Slider Label').setText(str(self.__dt))
         
         self.createSlider(
-            5, 20, init=int(self.__leftx * 50),
+            3, 200, init=int(self.__leftx * 100),
             func=self.__updatedLeftX, 
             name='Left Xlim 4', 
             tab=self.__tab,
@@ -70,9 +70,9 @@ class SeismicExample04(PlotInterface):
         
         # Set random seed
         np.random.seed(10)
-        self.__ax1.axis([-0.7, 0.7, -0.005, self.__leftx])
-        self.__ax2.axis([-0.7, 0.7, -0.005, self.__leftx])
-        self.__ax3.axis([-0.7, 0.7, -0.005, self.__leftx])
+        self.__ax1.axis([-0.7, 0.7, 0, self.__leftx])
+        self.__ax2.axis([-0.7, 0.7, 0, self.__leftx])
+        self.__ax3.axis([-0.7, 0.7, 0, self.__leftx])
         
         self.__t_caus = np.arange(0, self.__tmax, self.__dt)
         self.__wavem = np.exp(-(np.pi * self.__fdom * self.__t_caus) ** 2) * np.sin(2 * np.pi * self.__fdom * self.__t_caus)  # Ricker-like wavelet
@@ -98,7 +98,7 @@ class SeismicExample04(PlotInterface):
 
         
     def __updatedLeftX(self, index):
-        self.__leftx = index / 50
+        self.__leftx = index / 100
         self.__draw()
         self.tabAtr('Left Xlim 4 Slider Label').setText(str(self.__leftx))
         
@@ -149,7 +149,7 @@ class SeismicExample04(PlotInterface):
                 }
             )
             # ax.axis([-0.4, 0.4, -0.08, self.tmax])
-            ax.axis([-0.7, 0.7, -0.005, self.__leftx])  # Set axis limits
+            ax.axis([-0.7, 0.7, 0, self.__leftx])  # Set axis limits
             axes.append(ax)
 
         self.__ax1, self.__ax2, self.__ax3 = axes

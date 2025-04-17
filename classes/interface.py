@@ -1,89 +1,216 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QTabWidget, QPushButton, QVBoxLayout, QBoxLayout, QFileDialog, QMessageBox
-from PyQt5.QtWidgets import QHBoxLayout, QLabel, QSlider, QGridLayout, QGroupBox, QDial
-from PyQt5.QtCore import Qt
-from .graphObjects import GraphObjects
 import time
 import numpy as np
-from PyQt5.QtWidgets import QFileDialog, QMessageBox
-from PyQt5.QtCore import QDir
-from PyQt5.QtWidgets import QMenu
-
+from PyQt5.QtCore import Qt, QDir
+from .graphObjects import GraphObjects
+from .graphObjects import GraphObjects
+from PyQt5.QtWidgets import (
+    QApplication, QWidget, QTabWidget, QPushButton, QVBoxLayout,
+    QBoxLayout, QFileDialog, QMessageBox, QHBoxLayout, QLabel, QSlider,
+    QGridLayout, QGroupBox, QDial, QSizePolicy, QSpacerItem, QMenu
+)
 
 class PlotInterface(GraphObjects):
     def __init__(self):
         super().__init__()  
-        
-        # menuBar = self.menuBar()
-        # # Creating menus using a QMenu object
-        # fileMenu = QMenu("&File", self)
-        # menuBar.addMenu(fileMenu)
-        # # Creating menus using a title
-        # editMenu = menuBar.addMenu("&Edit")
-        # helpMenu = menuBar.addMenu("&Help")
-
-        # self.menu = QTabWidget()
-        # menuItem = QWidget()
-        # layout = QGridLayout()
-        # menuItem.setLayout(layout)
-        # self.menu.addTab(menuItem, 'List')
-        
-        # self.layout.addWidget(self.menu, 0, 0, 0, 1)  
-
-
 
         self.setWindowTitle("Module plot interface")
-        self.setGeometry(250, 50, 2100, 1300) # (x, y, width, height)
+        self.setGeometry(250, 50, 2100, 1300)
+
         self.layout = QGridLayout()
         self.setLayout(self.layout)
 
+        # Вернём аккуратные внешние отступы
+        self.layout.setContentsMargins(10, 10, 10, 10)
+        self.layout.setSpacing(5)
+
         self.tabs = QTabWidget()
-        self.layout.addWidget(self.tabs, 0, 0)       
-  
+        self.tabs.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.layout.addWidget(self.tabs, 0, 0)
 
         self.windowColor = '#2E2E2E'   
         self.widgetColor = '#6e6e6e'
         self.graphColor = '#4c4c4c'
         self.ticksColor = '#b5b5b5'
+        self.gridColor = '#6e6e6e'
+        self.ticksWidth = 2.5
+        
+        # self.windowColor = 'white'   
+        # self.gridColor = 'grey'
+        # self.widgetColor = 'black'
+        # self.graphColor = 'white'
+        # self.ticksColor = 'black'
+        # self.ticksWidth = 1
 
         self.darkMode = True
-        # self.changeMode()
-
         self.fileName = None
 
     def createTab(self, name):
         tab = QWidget()
         layout = QGridLayout()
+        layout.setContentsMargins(10, 10, 10, 10)
+        layout.setSpacing(5)
         tab.setLayout(layout)
         self.tabs.addTab(tab, name)
-
         layout.setObjectName(name)
 
-        sliderBox = self.createBox(layout, "Sliders box", [1, 2], [300, 1200])
-        setattr(self, f"{name}SliderBox", sliderBox)
+        # # Graph box: ширина зависит от растягивания, не задаём фиксированный размер
+        # graphBox = self.createBox(layout, "Graph box", [0, 0, 0, 2])
+        # graphBox.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        # setattr(self, f"{name}GraphBox", graphBox)
 
-        graphBox = self.createBox(layout, "Graph box", [0, 0, 0, 2], [1800, 1200])
+        # # Slider box — с фиксированной шириной
+        # sliderBox = self.createBox(layout, "Sliders box", [0, 2, 1, 1])
+        # sliderBox.setFixedWidth(300)
+        # sliderBox.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+        # setattr(self, f"{name}SliderBox", sliderBox)
+
+        graphBox = self.createBox(layout, "Graph box", [0, 0, 1, 2])
+        graphBox.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         setattr(self, f"{name}GraphBox", graphBox)
+        sliderBox = self.createBox(layout, "Sliders box", [0, 2, 1, 1])
+        sliderBox.setFixedWidth(300)
+        sliderBox.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
+        setattr(self, f"{name}SliderBox", sliderBox)
+        # Вниз sliderBox'а — spacer
+        spacer = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        sliderBox.layout().addItem(spacer)
+
+
+
 
         figure, canvas = self.createFigure(name, graphBox)
-
         setattr(self, f"{name}Figure", figure)
         setattr(self, f"{name}Canvas", canvas)
 
         saveButton = QPushButton("Save picture")
+        saveButton.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        saveButton.setFixedHeight(60)
         saveButton.clicked.connect(self.saveFile)
         self.addToBox(sliderBox, saveButton)
 
         loadButton = QPushButton("Load file")
+        loadButton.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        loadButton.setFixedHeight(60)
         loadButton.clicked.connect(self.get_file_way)
         self.addToBox(sliderBox, loadButton)
 
-        # darkMode = QPushButton("Dark mode")
-        # darkMode.clicked.connect(self.changeMode)
-        # self.addToBox(sliderBox, darkMode)
-        
+        # Spacer внизу для отступа
+        spacer = QSpacerItem(20, 60, QSizePolicy.Minimum, QSizePolicy.Expanding)
+        sliderBox.layout().addItem(spacer)
+
         return layout
+
+    def tabAtr(self, name):
+        return getattr(self, f"{name}")
+
+    def createSlider(self, min, max, tab, init=0, func='none', name='', label=False):
+        sliderBox = self.createBox(tab, name, size=['auto', 100], v=True)
+        sliderBox.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+
+        slider = QSlider(Qt.Horizontal)
+        slider.setMinimum(min)
+        slider.setMaximum(max)
+        slider.setValue(init)
+        slider.setSingleStep(1)
+        slider.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        slider.setFixedHeight(40)
+
+        if func != 'none':
+            slider.valueChanged.connect(func)
+        self.addToBox(sliderBox, slider)
+
+        if label:
+            label_widget = QLabel(str(init))
+            setattr(self, f"{name} Slider Label", label_widget)
+            self.addToBox(sliderBox, label_widget)
+
+        setattr(self, f"{name} slider", slider)
+
+        self.addToBox(self.tabAtr(f'{tab.objectName()}SliderBox'), sliderBox)
+
+        return sliderBox
+
+    def createQDial(self, min, max, init, tab, func='none', name='', label=False):
+        dialBox = self.createBox(tab, name, size=['auto', 210])
+        dialBox.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+
+        dial = QDial(self)
+        dial.move(0, 0)
+        dial.setFixedSize(225, 150)
+        dial.setRange(min, max)
+        dial.setSingleStep(1)
+
+        if func != 'none':
+            dial.valueChanged.connect(func)
+
+        self.addToBox(dialBox, dial)
+        if label:
+            label_widget = QLabel(str(init))
+            setattr(self, f"{name} QDial Label", label_widget)
+            self.addToBox(dialBox, label_widget)
+
+        setattr(self, f"{name} QDial", dial)
+
+        self.addToBox(self.tabAtr(f'{tab.objectName()}SliderBox'), dialBox)
+
+        return dialBox
+
+    def createBox(self, tab, title='', position=[], size=['none', 'none'], v=True):
+        box = QGroupBox(title)
+
+        if isinstance(size[0], int) and isinstance(size[1], int):
+            box.setFixedSize(size[0], size[1])
+        elif size[0] == 'auto' and isinstance(size[1], int):
+            box.setFixedHeight(size[1])
+        elif isinstance(size[0], int) and size[1] == 'auto':
+            box.setFixedWidth(size[0])
+
+        # По умолчанию – растягиваемый блок
+        if size == ['none', 'none']:
+            box.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        tab.addWidget(box, *position)
+
+        if v == True:
+            layout = QVBoxLayout()
+            layout.setContentsMargins(5, 5, 5, 5)
+            layout.setSpacing(18)
+            box.setLayout(layout)
+        elif v == 'center':
+            layout = QBoxLayout(QBoxLayout.LeftToRight)
+            layout.setAlignment(Qt.AlignCenter)
+            layout.setSpacing(18)
+            box.setLayout(layout)
+        else:
+            layout = QHBoxLayout()
+            layout.setContentsMargins(5, 5, 5, 5)
+            layout.setSpacing(18)
+            box.setLayout(layout)
+
+        return box
+
+    def addToBox(self, box, widget):
+        widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        box.layout().addWidget(widget)
+
+    ##############################################
+    ##############################################
+    ##############################################
+    ##############################################
+    ##############################################
     
+    
+    def canvasDraw(tab):
+        def decorator(func):
+            def wrapper(self, *args, **kwargs):
+                result = func(self, *args, **kwargs)
+                self.tabAtr(f'{tab}Canvas').draw()  
+                return result
+            return wrapper
+        return decorator
+    
+
     def changeMode(self):
         self.darkMode = not self.darkMode
         
@@ -112,90 +239,6 @@ class PlotInterface(GraphObjects):
             pass
 
 
-
-    def tabAtr(self, name):
-        return getattr(self, f"{name}")
-
-
-    def createSlider(self, min, max, tab, init=0, func='none', name='', label=False):
-        sliderBox = self.createBox(tab, name, size=[240, 100], v=False)
-        slider = QSlider(Qt.Horizontal)
-        slider.setMinimum(min)
-        slider.setMaximum(max)
-        slider.setValue(init)
-        slider.setSingleStep(1)
-        if func != 'none':
-            slider.valueChanged.connect(func)
-        self.addToBox(sliderBox, slider)
-
-        if label:
-            label = QLabel(str(init))
-            setattr(self, f"{name} Slider Label", label)
-            self.addToBox(sliderBox, self.tabAtr(f"{name} Slider Label"))
-
-        setattr(self, f"{name} slider", slider)
-
-        self.addToBox(self.tabAtr(f'{tab.objectName()}SliderBox'), sliderBox)
-
-        return sliderBox
-
-    def createQDial(self, min, max, init, tab, func='none', name='', label=False):
-        dialBox = self.createBox(tab, name, size=[240, 250])
-        dial = QDial(self)
-        dial.move(0, 0)
-        dial.setFixedSize(190, 150)
-        dial.setRange(min, max)
-        dial.setSingleStep(1)
-
-        if func != 'none':
-            dial.valueChanged.connect(func)
-
-        self.addToBox(dialBox, dial)
-        if label:
-            label = QLabel(str(init))
-            setattr(self, f"{name} QDial Label", label)
-            self.addToBox(dialBox, self.tabAtr(f"{name} QDial Label"))
-
-        setattr(self, f"{name} QDial", dial)
-        self.addToBox(self.tabAtr(f'{tab.objectName()}SliderBox'), dialBox)
-
-        return dialBox
-
-    def createBox(self, tab, title='', position=[], size=['none', 'none'], v=True):
-        box = QGroupBox(title)
-
-        if size[0] == 'auto':
-            box.setFixedWidth(size[1]) 
-        elif size[1] == 'auto':
-            box.setFixedHeight(size[0])   
-        elif isinstance(size[0], int) and isinstance(size[1], int):
-            box.setFixedSize(size[0], size[1]) 
-
-
-        tab.addWidget(box, *position)
-
-        if v == True:
-            box.setLayout(QVBoxLayout())
-        elif v == 'center':
-            box.setLayout(QBoxLayout(QBoxLayout.LeftToRight))
-        else:
-            box.setLayout(QHBoxLayout())
-
-        return box
-
-    def addToBox(self, box, widget):
-        box.layout().addWidget(widget)
-
-    def canvasDraw(tab):
-        def decorator(func):
-            def wrapper(self, *args, **kwargs):
-                result = func(self, *args, **kwargs)
-                self.tabAtr(f'{tab}Canvas').draw()  
-                return result
-            return wrapper
-        return decorator
-    
-
     def getWorkTime(name):
         def decorator(func):
             def wrapper(self, *args, **kwargs):
@@ -206,10 +249,8 @@ class PlotInterface(GraphObjects):
                 end_time = time.time()
                 method_time = end_time - start_time
 
-
                 print(f"Max {name} method work time: {method_time:.4f} s")
 
- 
                 return result
             return wrapper
         return decorator
