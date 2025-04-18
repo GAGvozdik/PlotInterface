@@ -1,6 +1,17 @@
 import numpy as np
 from .decorators import work_time
 from tqdm import tqdm
+import numba
+
+@numba.njit
+def fast_calc(N, U, D, R0, sign, R, bar_format):
+    for k in range(N):
+        for n in range(k, -1, -1):
+            U[n, k] = (1 + R[n]) * U[n + 1, k] - sign * R[n] * D[n, k - n]
+            D[n + 1, k - n] = (1 - R[n]) * D[n, k - n] + sign * R[n] * U[n + 1, k]
+        D[0, k + 1] = R0 * U[0, k]
+    
+    return D, U
 
 @work_time()
 def add_multiples(R, type=1, R0=0):
@@ -42,12 +53,13 @@ def add_multiples(R, type=1, R0=0):
     bar_format = f"{GREY}{{l_bar}}{{bar}}{{r_bar}}{RESET}"
     
     # Recursive relations following eq. 3.38/3.39
-    for k in tqdm(range(N), desc="Processing...", bar_format=bar_format):
-        for n in range(k, -1, -1):
-            U[n, k] = (1 + R[n]) * U[n + 1, k] - sign * R[n] * D[n, k - n]
-            D[n + 1, k - n] = (1 - R[n]) * D[n, k - n] + sign * R[n] * U[n + 1, k]
-        D[0, k + 1] = R0 * U[0, k]
-
+    # for k in tqdm(range(N), desc="Processing...", bar_format=bar_format):
+    #     for n in range(k, -1, -1):
+    #         U[n, k] = (1 + R[n]) * U[n + 1, k] - sign * R[n] * D[n, k - n]
+    #         D[n + 1, k - n] = (1 - R[n]) * D[n, k - n] + sign * R[n] * U[n + 1, k]
+    #     D[0, k + 1] = R0 * U[0, k]
+    
+    D, U = fast_calc(N, U, D, R0, sign, R, bar_format)
     
     # Transmission through the surface
     RM = -sign * (1 + R0) * U[0, :N]
