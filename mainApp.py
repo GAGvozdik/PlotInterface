@@ -23,7 +23,7 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 # class MainApp(AllExamples):
-class MainApp(AllSeismicExamples):
+class MainApp(AllSeismicExamples, AllExamples):
     def __init__(self):
         super().__init__()
 
