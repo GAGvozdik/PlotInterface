@@ -1,6 +1,24 @@
 import numpy as np
 from .decorators import work_time
 from tqdm import tqdm
+import numba
+
+@numba.njit
+def fast_calc(NLayers, k, V, v, Q, q, DTHK, rho, RHO, R, T, dt, n):
+    for i in range(NLayers):
+        for j in range(n[i]):
+            V[k] = v[i]
+            RHO[k] = rho[i]
+            Q[k] = q[i]
+            DTHK[k] = 2 * dt * v[i]
+            T[k] = (k + 1) * dt
+            if j == 0 and i != 0:  # Calculate reflectivity at the interface
+                i1 = rho[i - 1] * v[i - 1]
+                i2 = rho[i] * v[i]
+                R[k] = (i2 - i1) / (i1 + i2)
+            k += 1
+    
+    return k, V, T, DTHK, RHO, Q, R
 
 @work_time()
 def reflec_from_model(rho, v, q, thk, dt, tmax=None):
@@ -65,17 +83,25 @@ def reflec_from_model(rho, v, q, thk, dt, tmax=None):
     k = 0  # Counter for the output arrays
     
     # Populate the output arrays
-    for i in tqdm(range(NLayers), desc="Processing...", bar_format=bar_format):
-        for j in range(n[i]):
-            V[k] = v[i]
-            RHO[k] = rho[i]
-            Q[k] = q[i]
-            DTHK[k] = 2 * dt * v[i]
-            T[k] = (k + 1) * dt
-            if j == 0 and i != 0:  # Calculate reflectivity at the interface
-                i1 = rho[i - 1] * v[i - 1]
-                i2 = rho[i] * v[i]
-                R[k] = (i2 - i1) / (i1 + i2)
-            k += 1
+    # for i in tqdm(range(NLayers), desc="Processing...", bar_format=bar_format):
+    #     for j in range(n[i]):
+    #         V[k] = v[i]
+    #         RHO[k] = rho[i]
+    #         Q[k] = q[i]
+    #         DTHK[k] = 2 * dt * v[i]
+    #         T[k] = (k + 1) * dt
+    #         if j == 0 and i != 0:  # Calculate reflectivity at the interface
+    #             i1 = rho[i - 1] * v[i - 1]
+    #             i2 = rho[i] * v[i]
+    #             R[k] = (i2 - i1) / (i1 + i2)
+    #         k += 1
+    # print(v.shape, rho.shape, q.shape, t.shape, n.shape)
+    # print(v.dtype, rho.dtype, q.dtype, t.dtype, n.dtype)
+
+    v = v.ravel()
+    rho = rho.ravel()
+    q = q.ravel()
+
+    k, V, T, DTHK, RHO, Q, R = fast_calc(NLayers, k, V, v, Q, q, DTHK, rho, RHO, R, T, dt, n)
     
     return R, V, RHO, Q, DTHK, T

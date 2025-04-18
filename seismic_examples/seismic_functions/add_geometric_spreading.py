@@ -1,6 +1,16 @@
 import numpy as np  # Import the NumPy library for numerical operations
 from .decorators import work_time
 from tqdm import tqdm
+import numba
+
+@numba.njit
+def fast_calc(RGS, THK, R, N):
+    for i in range(N): # Loop through each element in the reflectivity array
+        RGS[i] = (THK[0] / np.sum(THK[:i+1])) * R[i]  # Apply geometric spreading formula
+    
+    return RGS
+
+
 
 @work_time()
 def add_geometric_spreading(R, THK):
@@ -19,7 +29,10 @@ def add_geometric_spreading(R, THK):
     
     bar_format = f"{GREY}{{l_bar}}{{bar}}{{r_bar}}{RESET}"
     
-    for i in tqdm(range(N), desc="Processing...", bar_format=bar_format): # Loop through each element in the reflectivity array
-        RGS[i] = (THK[0] / np.sum(THK[:i+1])) * R[i]  # Apply geometric spreading formula
+    # for i in tqdm(range(N), desc="Processing...", bar_format=bar_format): # Loop through each element in the reflectivity array
+    #     RGS[i] = (THK[0] / np.sum(THK[:i+1])) * R[i]  # Apply geometric spreading formula
+
+    RGS = fast_calc(RGS, THK, R, N)
+
 
     return RGS  # Return the reflectivity with geometric spreading

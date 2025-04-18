@@ -19,7 +19,6 @@ from PyQt5.QtWidgets import QGridLayout
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QFileDialog
 
 def resource_path(relative_path):
-    """Возвращает абсолютный путь к ресурсу (работает и в .exe, и в IDE)."""
     base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_path, relative_path)
 
@@ -28,7 +27,7 @@ class MainApp(AllSeismicExamples):
     def __init__(self):
         super().__init__()
 
-        self.__tab = self.createTab('Ex18')
+        self.__tab = self.createTab('Test')
 
         self.createSlider(
             1, 3000, init=3000,
@@ -55,10 +54,10 @@ class MainApp(AllSeismicExamples):
         self.__draw()
         self.__drawColorbar()
 
-    @AllExamples.canvasDraw(tab='Ex18')
+    @AllExamples.canvasDraw(tab='Test')
     def __drawAxes(self):
         self.__ax = self.createAxes(
-            self.tabAtr('Ex18Figure'),
+            self.tabAtr('TestFigure'),
             args={
                 'pos': 111, 
                 'name': 'plot 1',
@@ -70,7 +69,7 @@ class MainApp(AllSeismicExamples):
         self.__ax.set_xlim([-0.05, 1.05])
         self.__ax.set_ylim([-0.05, 1.05])
         
-    @AllExamples.canvasDraw(tab='Ex18')
+    @AllExamples.canvasDraw(tab='Test')
     def __draw(self):
         self.__scatterArgsEx = {
             'x': self.__x,
@@ -82,10 +81,10 @@ class MainApp(AllSeismicExamples):
         }
         self.__points = self.__ax.scatter(**self.__scatterArgsEx)
 
-    @AllExamples.canvasDraw(tab='Ex18')
+    @AllExamples.canvasDraw(tab='Test')
     def __drawColorbar(self):
         self.createColorbar(
-            self.tabAtr('Ex18Figure'), 
+            self.tabAtr('TestFigure'), 
             self.__points, 
             name='Quantiles', 
             cmap=self.__scatterArgsEx['cmap']
@@ -109,9 +108,9 @@ class MainApp(AllSeismicExamples):
         self.tabAtr('Slider value slider').setValue(index)
         self.tabAtr('Slider value Slider Label').setText(str(index))
 
-    # @AllExamples.canvasDraw(tab='Ex18')
+    # @AllExamples.canvasDraw(tab='Test')
     def __redraw(self):
-        # self.tabAtr('Ex18Figure').clf()
+        # self.tabAtr('TestFigure').clf()
         # self.__draw()
         
         # self.__points.remove()
