@@ -50,7 +50,7 @@ class SeismicExample02(PlotInterface):
         self.tabAtr('Dominant frequency 2 Slider Label').setText(str(self.__fdom))
 
         self.createQDial(
-            20, 500, init=int(self.__dt * 10000),
+            15, 500, init=int(self.__dt * 10000),
             func=self.__updatedT, 
             name='dT 2', 
             tab=self.__tab,
@@ -84,10 +84,10 @@ class SeismicExample02(PlotInterface):
         self.RL = absorption(self.RM, self.__Q, self.__dt, self.__fdom) # do you know why here is RM? 
         self.Rg = add_geometric_spreading(self.RL, self.THK) 
 
-        self.__ax1.plot(self.R, self.T, linewidth=3, color='darkcyan', label='Original Reflectivity')
-        self.__ax2.plot(self.RM, self.T, linewidth=3, color='orange', label='Reflectivity with Multiples')
-        self.__ax3.plot(self.RL, self.T, linewidth=3, color='Crimson', label='Reflectivity with Multiples and absorption')
-        self.__ax4.plot(self.Rg, self.T, linewidth=1, color='mediumseagreen', label='Reflectivity with absorption and geometric_spreading')
+        self.__ax1.plot(self.R, self.T, linewidth=6, color='darkcyan', label='Original Reflectivity')
+        self.__ax2.plot(self.RM, self.T, linewidth=6, color='orange', label='Reflectivity with Multiples')
+        self.__ax3.plot(self.RL, self.T, linewidth=6, color='Crimson', label='Reflectivity with Multiples and absorption')
+        self.__ax4.plot(self.Rg, self.T, linewidth=6, color='mediumseagreen', label='Reflectivity with absorption and geometric_spreading')
 
     def __updateFDom(self, index):
         self.__fdom = index / 10

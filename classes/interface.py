@@ -16,7 +16,7 @@ class PlotInterface(GraphObjects):
         super().__init__()  
 
         self.setWindowTitle("Module plot interface")
-        self.setGeometry(250, 50, 2100, 1300)
+        self.setGeometry(250, 250, 1600, 900)
 
         self.layout = QGridLayout()
         self.setLayout(self.layout)
@@ -137,6 +137,7 @@ class PlotInterface(GraphObjects):
         tab.setLayout(layout)
         self.tabs.addTab(tab, name)
         layout.setObjectName(name)
+        setattr(self, name, layout)
 
         graphBox = self.createBox(layout, "Graph box", [0, 0, 0, 2])
         graphBox.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)

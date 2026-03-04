@@ -1,11 +1,21 @@
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
-
+# Virtual Environment
 workEnv/
+
+# Thermodynamics raw data dumps
+thermodynamics/t.txt
+thermodynamics/c.txt
+thermodynamics/lmbd.txt
+thermodynamics/ro.txt
+
+# Generated Thermodynamics Data (ThermoExample02)
+# Игнорируем только сгенерированные файлы с суффиксом _2d_melting
+thermodynamics/data/*_2d_melting.npy
+thermodynamics/data/*_2d_melting.txt
+
+__pycache__/
 test.py
 classes/__pycache__/
+thermodynamics/__pycache__/
 examples/
 # C extensions
 *.so

@@ -26,7 +26,7 @@ class SeismicExample04(PlotInterface):
         self.__dt = 0.001
         self.__tmax = 0.1
         self.__fdom = 20
-        self.__leftx = 0.2
+        self.__leftx = 0.1
         
         self.__tab = self.createTab('Ex04')
 
@@ -40,7 +40,7 @@ class SeismicExample04(PlotInterface):
         self.tabAtr('Dominant frequency 4 Slider Label').setText(str(self.__fdom))
         
         self.createSlider(
-            10, 500, init=int(self.__dt * 10000),
+            15, 500, init=int(self.__dt * 10000),
             func=self.__updatedT, 
             name='dT 4', 
             tab=self.__tab,
@@ -49,7 +49,7 @@ class SeismicExample04(PlotInterface):
         self.tabAtr('dT 4 Slider Label').setText(str(self.__dt))
         
         self.createSlider(
-            3, 200, init=int(self.__leftx * 100),
+            1, 20, init=int(self.__leftx * 100),
             func=self.__updatedLeftX, 
             name='Left Xlim 4', 
             tab=self.__tab,

@@ -44,7 +44,7 @@ class SeismicExample03(PlotInterface):
         self.tabAtr('Dominant frequency 3 Slider Label').setText(str(self.__fdom))
         
         self.createSlider(
-            10, 500, init=int(self.__dt * 10000),
+            15, 500, init=int(self.__dt * 10000),
             func=self.__updatedT, 
             name='dT 3', 
             tab=self.__tab,

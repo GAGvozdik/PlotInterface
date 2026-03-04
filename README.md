@@ -50,3 +50,10 @@ Problems with geon module installing you can solve using official geon docks ```
 
 
 
+вылет если при загрузке файла файл не подходит или не загружается.
+
+на одном примере две кнопки загрузить файл
+
+сделать выпадающее окно
+
+
