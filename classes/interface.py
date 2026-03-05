@@ -16,7 +16,7 @@ class PlotInterface(GraphObjects):
         super().__init__()  
 
         self.setWindowTitle("Module plot interface")
-        self.setGeometry(250, 250, 1600, 900)
+        self.setGeometry(250, 100, 1600, 900)
 
         self.layout = QGridLayout()
         self.setLayout(self.layout)
