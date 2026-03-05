@@ -8,6 +8,7 @@ from matplotlib.colors import ListedColormap
 import geone as gn
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
 
 class GraphObjects(QWidget):
     def __init__(self):
@@ -15,11 +16,13 @@ class GraphObjects(QWidget):
 
     def createFigure(self, name, parentBox):
         figure = plt.figure()
-        figure.patch.set_facecolor(self.windowColor)
-        figure.subplots_adjust(wspace=0.4, hspace=0.5)
+        # Задача 3: Синхронизация фона с темой
+        figure.patch.set_facecolor(getattr(self, 'windowColor', '#2E2E2E'))
+        figure.subplots_adjust(wspace=0.3, hspace=0.3)
 
         canvas = FigureCanvas(figure)
-        canvas.setStyleSheet(f"background-color: {self.graphColor};")
+        # Убираем жесткий фон QSS, чтобы видеть patch фигуры
+        canvas.setStyleSheet("background-color: transparent;")
 
         parentBox.layout().addWidget(canvas)
         return figure, canvas

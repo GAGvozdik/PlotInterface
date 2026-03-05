@@ -1,6 +1,7 @@
 from classes.interface import PlotInterface
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.gridspec import GridSpec
 from PyQt5.QtWidgets import QPushButton, QProgressBar, QLabel, QHBoxLayout, QWidget
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 import os
@@ -196,22 +197,25 @@ class ThermoExample02(PlotInterface):
         fig = self.tabAtr('2D MeltingFigure')
         fig.clear()
         
-        self.ax_t_02 = plt.subplot2grid((3, 3), (0, 0), rowspan=2, colspan=2, fig=fig)
+        # Задача 3: Использование GridSpec для управления макетом
+        gs = GridSpec(3, 3, figure=fig, wspace=0.3, hspace=0.3)
+        
+        self.ax_t_02 = fig.add_subplot(gs[0:2, 0:2])
         self.ax_t_02.set_title('Temperature (T)', color=self.ticksColor)
         self.ax_t_02.set_aspect('equal', adjustable='box')
         
-        self.ax_slices_02 = plt.subplot2grid((3, 3), (2, 0), colspan=2, fig=fig)
+        self.ax_slices_02 = fig.add_subplot(gs[2, 0:2])
         self.ax_slices_02.set_title('Center Slices (Normalized)', color=self.ticksColor)
         
-        self.ax_c_02 = plt.subplot2grid((3, 3), (0, 2), fig=fig)
+        self.ax_c_02 = fig.add_subplot(gs[0, 2])
         self.ax_c_02.set_title('Heat Capacity (C)', color=self.ticksColor)
         self.ax_c_02.set_aspect('equal', adjustable='box')
         
-        self.ax_ro_02 = plt.subplot2grid((3, 3), (1, 2), fig=fig)
+        self.ax_ro_02 = fig.add_subplot(gs[1, 2])
         self.ax_ro_02.set_title('Density (Ro)', color=self.ticksColor)
         self.ax_ro_02.set_aspect('equal', adjustable='box')
         
-        self.ax_lmbd_02 = plt.subplot2grid((3, 3), (2, 2), fig=fig)
+        self.ax_lmbd_02 = fig.add_subplot(gs[2, 2])
         self.ax_lmbd_02.set_title('Conductivity (L)', color=self.ticksColor)
         self.ax_lmbd_02.set_aspect('equal', adjustable='box')
         

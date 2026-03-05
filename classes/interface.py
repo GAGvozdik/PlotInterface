@@ -18,16 +18,57 @@ class PlotInterface(GraphObjects):
         self.setWindowTitle("Module plot interface")
         self.setGeometry(250, 100, 1600, 900)
 
-        self.layout = QGridLayout()
+        self.layout = QHBoxLayout()
         self.setLayout(self.layout)
+        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setSpacing(0)
 
-        # Вернём аккуратные внешние отступы
-        self.layout.setContentsMargins(10, 10, 10, 10)
-        self.layout.setSpacing(5)
+        # Боковая панель
+        self.sidebar_widget = QWidget()
+        self.sidebar_widget.setFixedWidth(300)
+        self.sidebar_widget.setVisible(False)
+        self.sidebar_layout = QVBoxLayout()
+        self.sidebar_layout.setContentsMargins(0, 0, 0, 0)
+        self.sidebar_layout.setSpacing(0)
+        self.sidebar_widget.setLayout(self.sidebar_layout)
+        self.layout.addWidget(self.sidebar_widget)
+
+        # Наполнение боковой панели
+        self.sidebar_box = self.createBox(self.sidebar_layout, "Проводник")
+        self.sidebar_box.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        # Основной контент
+        self.main_content_widget = QWidget()
+        self.main_content_layout = QVBoxLayout()
+        self.main_content_layout.setContentsMargins(0, 0, 0, 0)
+        self.main_content_layout.setSpacing(0)
+        self.main_content_widget.setLayout(self.main_content_layout)
+        self.layout.addWidget(self.main_content_widget)
+
+        # Кнопка переключения сайдбара
+        self.toggle_sidebar_btn = QPushButton("☰")
+        self.toggle_sidebar_btn.setFixedSize(50, 45)
+        self.toggle_sidebar_btn.setFlat(True)
+        self.toggle_sidebar_btn.setStyleSheet("""
+            QPushButton {
+                font-size: 24px;
+                padding: 0px;
+                margin: 0px;
+                border-radius: 0px;
+                border: none;
+                background-color: transparent;
+            }
+            QPushButton:hover {
+                background-color: rgba(110, 110, 110, 50);
+            }
+        """)
+        self.toggle_sidebar_btn.clicked.connect(self.toggle_sidebar)
 
         self.tabs = QTabWidget()
         self.tabs.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.layout.addWidget(self.tabs, 0, 0)
+        # Кнопка в левом верхнем углу вкладок
+        self.tabs.setCornerWidget(self.toggle_sidebar_btn, Qt.TopLeftCorner)
+        self.main_content_layout.addWidget(self.tabs)
 
         self.windowColor = '#2E2E2E'   
         self.widgetColor = '#6e6e6e'
@@ -42,6 +83,10 @@ class PlotInterface(GraphObjects):
         self.dark_mode = True  # Текущая тема
 
         self.app = QApplication.instance()
+        
+    def toggle_sidebar(self):
+        """Переключение видимости бокового меню."""
+        self.sidebar_widget.setVisible(not self.sidebar_widget.isVisible())
         
 
 
@@ -115,9 +160,11 @@ class PlotInterface(GraphObjects):
         ax.xaxis.label.set_color(self.ticksColor)
         ax.yaxis.label.set_color(self.ticksColor)
 
+        # Задача 3: Включаем все 4 границы (spines)
         for spine in ax.spines.values():
+            spine.set_visible(True)
             spine.set_color(self.widgetColor)
-            spine.set_linewidth(self.ticksWidth)
+            spine.set_linewidth(2.0)
 
         ax.tick_params(axis='both', labelcolor=self.ticksColor,
                     color=self.widgetColor, width=self.ticksWidth, length=6, labelsize=12)
