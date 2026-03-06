@@ -11,6 +11,11 @@ from PyQt5.QtWidgets import (
     QRadioButton, QButtonGroup
 )
 
+try:
+    import pywinstyles
+except ImportError:
+    pywinstyles = None
+
 class PlotInterface(GraphObjects):
     def __init__(self):
         super().__init__()  
@@ -34,7 +39,7 @@ class PlotInterface(GraphObjects):
         self.layout.addWidget(self.sidebar_widget)
 
         # Наполнение боковой панели
-        self.sidebar_box = self.createBox(self.sidebar_layout, "Проводник")
+        self.sidebar_box = self.createBox(self.sidebar_layout, "Tree")
         self.sidebar_box.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         # Основной контент
@@ -141,6 +146,15 @@ class PlotInterface(GraphObjects):
                     QApplication.instance().setStyleSheet(f.read())
             except Exception as e:
                 print(f"Ошибка при загрузке стиля: {e}")
+
+            # Динамическое изменение стиля системной шапки (Windows)
+            if pywinstyles:
+                try:
+                    # 'dark' для темной темы, 'normal' или 'light' для светлой
+                    style_type = "dark" if theme_name == "dark" else "normal"
+                    pywinstyles.apply_style(self, style_type)
+                except Exception as e:
+                    print(f"Ошибка pywinstyles: {e}")
 
             # Обновляем фигуры и canvas
             for i in range(self.tabs.count()):
