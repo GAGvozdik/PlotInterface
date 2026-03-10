@@ -254,7 +254,7 @@ class ThermoExample02(PlotInterface):
         self.ax_slices_02.set_ylim(-0.05, 1.05)
         self.ax_slices_02.legend(loc='upper right', fontsize=10)
         
-        fig.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05, wspace=0.3, hspace=0.4)
+        fig.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05, wspace=0.3, hspace=0.3)
 
     def update_grid_size_label_02(self, value):
         label = getattr(self, "Grid Size (NX/NY)_02 Slider Label", None)

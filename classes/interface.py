@@ -26,15 +26,15 @@ class PlotInterface(GraphObjects):
         self.layout = QHBoxLayout()
         self.setLayout(self.layout)
         self.layout.setContentsMargins(0, 0, 0, 0)
-        self.layout.setSpacing(0)
+        self.layout.setSpacing(10)
 
         # Боковая панель
         self.sidebar_widget = QWidget()
         self.sidebar_widget.setFixedWidth(300)
         self.sidebar_widget.setVisible(False)
         self.sidebar_layout = QVBoxLayout()
-        self.sidebar_layout.setContentsMargins(0, 0, 0, 0)
-        self.sidebar_layout.setSpacing(0)
+        self.sidebar_layout.setContentsMargins(10, 10, 0, 10)
+        self.sidebar_layout.setSpacing(10)
         self.sidebar_widget.setLayout(self.sidebar_layout)
         self.layout.addWidget(self.sidebar_widget)
 
@@ -45,7 +45,7 @@ class PlotInterface(GraphObjects):
         # Основной контент
         self.main_content_widget = QWidget()
         self.main_content_layout = QVBoxLayout()
-        self.main_content_layout.setContentsMargins(0, 0, 0, 0)
+        self.main_content_layout.setContentsMargins(10, 10, 10, 10)
         self.main_content_layout.setSpacing(0)
         self.main_content_widget.setLayout(self.main_content_layout)
         self.layout.addWidget(self.main_content_widget)
@@ -126,14 +126,16 @@ class PlotInterface(GraphObjects):
 
             # Обновляем цвета для matplotlib
             if theme_name == "dark":
-                self.windowColor = '#2E2E2E'   
+                self.dividerColor = '#2E2E2E'   
+                self.windowColor = self.dividerColor
                 self.widgetColor = '#6e6e6e'
                 self.graphColor = '#4c4c4c'
                 self.ticksColor = '#b5b5b5'
                 self.gridColor = '#6e6e6e'
                 self.ticksWidth = 2.5
             else:
-                self.windowColor = '#d6d6d6'   
+                self.dividerColor = '#d6d6d6'   
+                self.windowColor = self.dividerColor
                 self.gridColor = 'grey'
                 self.widgetColor = 'black'
                 self.graphColor = '#d6d6d6'
@@ -170,6 +172,7 @@ class PlotInterface(GraphObjects):
                     
     def updateAxesStyle(self, ax):
         ax.set_facecolor(self.graphColor)
+        ax.set_frame_on(True)
         ax.title.set_color(self.ticksColor)
         ax.xaxis.label.set_color(self.ticksColor)
         ax.yaxis.label.set_color(self.ticksColor)
