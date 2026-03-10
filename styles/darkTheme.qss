@@ -36,15 +36,20 @@ QWidget {
     color: #b8bcbe;              /* Цвет текста */
 }
 
+QWidget#sideBarContainer {
+    background-color: #2E2E2E;
+}
+
 QGroupBox {
-    border: 3px solid #444444;   
+    border: 2px solid #6e6e6e;   
     color: #b5b5b5; /* Цвет текста вкладки */               
                  
     padding: 10px; 
     padding-top: 25px; 
 
-    border-radius: 15px;
+    border-radius: 10px;
     font-size: 22px;
+    margin-top: 1ex;
 }
 
 QGroupBox::title {

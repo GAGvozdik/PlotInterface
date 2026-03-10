@@ -42,16 +42,19 @@ class MainApp(AllExamples, AllSeismicExamples, AllThermoExamples, PlotInterface)
             except Exception as e:
                 print(f"Failed to apply pywinstyles: {e}")
 
-        # 3. Настройка селектора в Sidebar
-        self.modeSelector.addItems(["Общие", "Сейсмика", "Термодинамика"])
-        self.modeSelector.currentIndexChanged.connect(self.change_mode)
+        # 3. Настройка селектора в Sidebar (радиокнопки)
+        self.modeGroup.buttonClicked.connect(self.change_mode)
         
         # 4. Загрузка начального режима
         self.change_mode()
 
     def change_mode(self):
         """Переключение набора вкладок через методы унаследованных миксинов."""
-        selected_text = self.modeSelector.currentText()
+        checked_button = self.modeGroup.checkedButton()
+        if not checked_button:
+            return
+            
+        selected_text = checked_button.text()
         print(f"Switching to: {selected_text}")
         
         self.clearTabs()

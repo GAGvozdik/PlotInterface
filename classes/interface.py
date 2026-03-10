@@ -30,7 +30,7 @@ class PlotInterface(GraphObjects):
         self.setGeometry(250, 100, 1600, 900)
 
         self.layout = QHBoxLayout()
-        self.layout.setContentsMargins(0, 0, 0, 0)
+        self.layout.setContentsMargins(10, 10, 10, 10)
         self.layout.setSpacing(10)
 
         # Внедрение центрального виджета для QMainWindow
@@ -40,96 +40,37 @@ class PlotInterface(GraphObjects):
 
         # Боковая панель
         self.sidebar_widget = QWidget(self)
+        self.sidebar_widget.setObjectName("sideBarContainer")
         self.sidebar_widget.setFixedWidth(300)
         self.sidebar_widget.setVisible(True) # Включаем видимость по умолчанию
         self.sidebar_layout = QVBoxLayout()
-        self.sidebar_layout.setContentsMargins(15, 15, 15, 15)
-        self.sidebar_layout.setSpacing(15)
+        self.sidebar_layout.setContentsMargins(0, 0, 0, 0)
+        self.sidebar_layout.setSpacing(10)
         self.sidebar_widget.setLayout(self.sidebar_layout)
         
         # Добавляем в лейаут с коэффициентом растяжения 0 (не растягивается)
         self.layout.addWidget(self.sidebar_widget, 0)
 
-
-        # Стилизация боковой панели (Sidebar)
-        self.sidebar_widget.setStyleSheet("""
-            QWidget {
-                background-color: #252525;
-                border-right: 1px solid #3d3d3d;
-            }
-            QGroupBox {
-                color: #e0e0e0;
-                font-weight: bold;
-                border: 1px solid #3d3d3d;
-                margin-top: 20px;
-                padding-top: 20px;
-                border-radius: 8px;
-                background-color: #2a2a2a;
-            }
-            QGroupBox::title {
-                subcontrol-origin: margin;
-                subcontrol-position: top center;
-                padding: 0 10px;
-                background-color: #2a2a2a;
-                border-radius: 4px;
-            }
-            QComboBox {
-                background-color: #3d3d3d;
-                color: #ffffff;
-                border: 1px solid #555555;
-                border-radius: 6px;
-                padding: 8px;
-                font-size: 16px;
-                min-height: 35px;
-            }
-            QComboBox:hover {
-                background-color: #4a4a4a;
-                border: 1px solid #666666;
-            }
-            QComboBox::drop-down {
-                border: none;
-                width: 30px;
-            }
-            QComboBox QAbstractItemView {
-                background-color: #2d2d2d;
-                color: #ffffff;
-                selection-background-color: #4c4c4c;
-                outline: none;
-                border: 1px solid #3d3d3d;
-            }
-            QPushButton {
-                background-color: #3d3d3d;
-                color: #ffffff;
-                border: 1px solid #555555;
-                border-radius: 6px;
-                padding: 12px;
-                font-weight: bold;
-                font-size: 14px;
-            }
-            QPushButton:hover {
-                background-color: #4c4c4c;
-                border-color: #777777;
-            }
-            QPushButton:pressed {
-                background-color: #2a2a2a;
-            }
-            QLabel {
-                color: #b5b5b5;
-                background-color: transparent;
-                font-size: 14px;
-            }
-        """)
-
-        # Селектор режима
-        self.mode_box = self.createBox(self.sidebar_layout, "CATEGORY")
-        self.mode_box.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        self.modeSelector = QComboBox()
-        self.modeSelector.setFixedHeight(40)
-        self.addToBox(self.mode_box, self.modeSelector)
-
         # Наполнение боковой панели
         self.sidebar_box = self.createBox(self.sidebar_layout, "NAVIGATION")
         self.sidebar_box.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+        # Создание радиокнопок для режимов
+        self.modeGroup = QButtonGroup(self)
+        
+        self.radio_general = QRadioButton("Общие")
+        self.radio_seismic = QRadioButton("Сейсмика")
+        self.radio_thermo = QRadioButton("Термодинамика")
+        
+        self.radio_general.setChecked(True)
+        
+        self.modeGroup.addButton(self.radio_general)
+        self.modeGroup.addButton(self.radio_seismic)
+        self.modeGroup.addButton(self.radio_thermo)
+        
+        self.addToBox(self.sidebar_box, self.radio_general)
+        self.addToBox(self.sidebar_box, self.radio_seismic)
+        self.addToBox(self.sidebar_box, self.radio_thermo)
 
         # Основной контент
         self.main_content_widget = QWidget(self)
