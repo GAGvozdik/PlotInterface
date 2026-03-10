@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (
     QApplication, QWidget, QTabWidget, QPushButton, QVBoxLayout,
     QBoxLayout, QFileDialog, QMessageBox, QHBoxLayout, QLabel, QSlider,
     QGridLayout, QGroupBox, QDial, QSizePolicy, QSpacerItem, QMenu,
-    QRadioButton, QButtonGroup
+    QRadioButton, QButtonGroup, QComboBox
 )
 
 try:
@@ -18,8 +18,11 @@ except ImportError:
 
 class PlotInterface(GraphObjects):
     def __init__(self):
+        if hasattr(self, '_setup_done') and self._setup_done:
+            return
         super().__init__()  
 
+        self._setup_done = True
         self.setWindowTitle("Module plot interface")
         self.setGeometry(250, 100, 1600, 900)
 
@@ -38,8 +41,15 @@ class PlotInterface(GraphObjects):
         self.sidebar_widget.setLayout(self.sidebar_layout)
         self.layout.addWidget(self.sidebar_widget)
 
+        # Селектор режима
+        self.mode_box = self.createBox(self.sidebar_layout, "Category")
+        self.mode_box.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.modeSelector = QComboBox()
+        self.modeSelector.setFixedHeight(40)
+        self.addToBox(self.mode_box, self.modeSelector)
+
         # Наполнение боковой панели
-        self.sidebar_box = self.createBox(self.sidebar_layout, "Tree")
+        self.sidebar_box = self.createBox(self.sidebar_layout, "Navigation")
         self.sidebar_box.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         # Основной контент
@@ -93,6 +103,28 @@ class PlotInterface(GraphObjects):
         """Переключение видимости бокового меню."""
         self.sidebar_widget.setVisible(not self.sidebar_widget.isVisible())
         
+    def clearTabs(self):
+        """Полная очистка вкладок и связанных динамических объектов."""
+        while self.tabs.count() > 0:
+            tab_name = self.tabs.tabText(0)
+            
+            # Удаляем атрибуты, связанные с этой вкладкой
+            attrs_to_del = [
+                tab_name,
+                f"{tab_name}GraphBox",
+                f"{tab_name}SliderBox",
+                f"{tab_name}Figure",
+                f"{tab_name}Canvas"
+            ]
+            
+            # Также ищем все слайдеры и надписи, которые могли быть созданы
+            # Это сложнее, так как их имена зависят от параметра name в createSlider
+            # Но для базовой очистки вкладок tabs.clear() достаточно.
+            
+            self.tabs.removeTab(0)
+            
+        # Очистка имен лейаутов из __dict__ не обязательна, если мы их пересоздаем,
+        # но для чистоты можно было бы реализовать более глубокий поиск.
 
 
     def initThemeSwitcher(self):

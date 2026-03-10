@@ -17,6 +17,7 @@ except Exception:
 from geostatistics.examples import AllExamples
 from seismic_examples.all_seismic_examples import AllSeismicExamples
 from thermodynamics.all_thermo_examples import AllThermoExamples
+from classes.interface import PlotInterface
 
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
@@ -37,8 +38,7 @@ def resource_path(relative_path):
     base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_path, relative_path)
 
-# class MainApp(AllSeismicExamples):
-class MainApp(AllExamples):
+class MainApp(PlotInterface):
 
     def __init__(self):
         super().__init__()
@@ -53,106 +53,31 @@ class MainApp(AllExamples):
             except Exception as e:
                 print(f"Failed to apply pywinstyles: {e}")
 
-        self.__tab = self.createTab('Test')
-
-        self.createSlider(
-            1, 3000, init=3000,
-            func=self.__updatePoint, 
-            name='Slider value', 
-            tab=self.__tab,
-            label=True
-        )   
-
-        self.createQDial(
-            1, 3000, 3000, 
-            func=self.__updateScatter, 
-            name='QDial value', 
-            tab=self.__tab,
-            label=True
-        )
-        
-        self.__n = 3000
-        self.__x = [np.random.rand() for i in range(self.__n)]
-        self.__y = [np.random.rand() for i in range(self.__n)]
-        self.__c = [np.random.rand() for i in range(self.__n)]
-        
-        self.__drawAxes()
-        self.__draw()
-        self.__drawColorbar()
-
-    @AllExamples.canvasDraw(tab='Test')
-    def __drawAxes(self):
-        self.__ax = self.createAxes(
-            self.tabAtr('TestFigure'),
-            args={
-                'pos': 111, 
-                'name': 'plot 1',
-                'xAxName': 'x', 
-                'yAxName': 'y',
-                'grid': True
-            }
-        )
-        self.__ax.set_xlim([-0.05, 1.05])
-        self.__ax.set_ylim([-0.05, 1.05])
-        
-    @AllExamples.canvasDraw(tab='Test')
-    def __draw(self):
-        self.__scatterArgsEx = {
-            'x': self.__x,
-            'y': self.__y,
-            'c': self.__c,
-            's': 150,
-            'cmap': ListedColormap(["Crimson", "orange", 'lightblue', 'azure', 'coral']),
-            'zorder': 4
+        # Режимы работы (наборы примеров)
+        self.modes = {
+            "Геостатистика": AllExamples,
+            "Сейсмика": AllSeismicExamples,
+            "Термодинамика": AllThermoExamples
         }
-        self.__points = self.__ax.scatter(**self.__scatterArgsEx)
-
-    @AllExamples.canvasDraw(tab='Test')
-    def __drawColorbar(self):
-        self.createColorbar(
-            self.tabAtr('TestFigure'), 
-            self.__points, 
-            name='Quantiles', 
-            cmap=self.__scatterArgsEx['cmap']
-        )
         
-    def __updateScatter(self, index):
-        if self.__n < index:
-            for i in range(index - self.__n):
-                self.__x.append(np.random.rand())
-                self.__y.append(np.random.rand())
-                self.__c.append(np.random.rand())
-        else:
-            for i in range(self.__n - index):
-                self.__x.pop(1)
-                self.__y.pop(1)
-                self.__c.pop(1)
-        self.__n = index
-        self.__points.remove()
-        self.__draw()
-        self.tabAtr('QDial value QDial Label').setText(str(index))
-        self.tabAtr('Slider value slider').setValue(index)
-        self.tabAtr('Slider value Slider Label').setText(str(index))
-
-    # @AllExamples.canvasDraw(tab='Test')
-    def __redraw(self):
-        # self.tabAtr('TestFigure').clf()
-        # self.__draw()
+        # Настройка селектора
+        self.modeSelector.addItems(list(self.modes.keys()))
+        self.modeSelector.currentIndexChanged.connect(self.change_example_mode)
         
-        # self.__points.remove()
-        # x = [np.random.rand() for i in range(self.n18)]
-        # y = [np.random.rand() for i in range(self.n18)]
-        # self.__points.set_offsets(np.c_[x, y])
-        pass
+        # Инициализация первого режима по умолчанию
+        self.change_example_mode()
 
-    def __loadFile(self):
-        pass
-    
-    def __updatePoint(self, index):
+    def change_example_mode(self):
+        """Динамическое переключение набора вкладок."""
+        self.clearTabs()
+        selected_mode = self.modeSelector.currentText()
+        mode_class = self.modes.get(selected_mode)
         
-        self.tabAtr('QDial value QDial Label').setText(str(index))
-        self.tabAtr('QDial value QDial').setValue(index)
-        self.tabAtr('Slider value Slider Label').setText(str(index))
+        if mode_class:
+            # Вызываем инициализацию миксина. 
+            # Благодаря флагу _setup_done в PlotInterface, ядро UI не будет пересоздано.
+            mode_class.__init__(self)
+            print(f"Switched to mode: {selected_mode}")
 
 
 if __name__ == "__main__":
