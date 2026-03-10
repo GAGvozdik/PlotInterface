@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QTabWidget
 from PyQt5.QtWidgets import QGridLayout
 from matplotlib.colors import LinearSegmentedColormap
 from pathlib import Path
-from .interface import PlotInterface
+from classes.interface import PlotInterface
 
 class Example16(PlotInterface):
     def __init__(self):

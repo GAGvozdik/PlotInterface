@@ -1,4 +1,4 @@
-from .interface import PlotInterface
+from classes.interface import PlotInterface
 from pathlib import Path
 
 # INTERFACE 3

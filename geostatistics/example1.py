@@ -1,4 +1,4 @@
-from .interface import PlotInterface
+from classes.interface import PlotInterface
 import numpy as np
 from pathlib import Path
 

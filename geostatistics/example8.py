@@ -1,5 +1,5 @@
 import numpy as np
-from .interface import PlotInterface
+from classes.interface import PlotInterface
 from pathlib import Path
 
 class Example8(PlotInterface):

@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import geone as gn
-from .interface import PlotInterface
+from classes.interface import PlotInterface
 import matplotlib.pyplot as plt
 from pathlib import Path
 

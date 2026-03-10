@@ -6,7 +6,7 @@ import geone as gn
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
 from matplotlib.colors import LinearSegmentedColormap
-from .interface import PlotInterface
+from classes.interface import PlotInterface
 from pathlib import Path
 
 class Example15(PlotInterface):

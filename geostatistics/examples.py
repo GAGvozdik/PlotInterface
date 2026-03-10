@@ -17,9 +17,7 @@ from .example14 import Example14
 from .example15 import Example15
 from .example16 import Example16
 from .example17 import Example17
-from thermodynamics.all_thermo_examples import AllThermoExamples
-from thermodynamics.thermo_example_02 import ThermoExample02
-from .interface import PlotInterface
+from classes.interface import PlotInterface
 
 class AllExamples(
         # PlotInterface,
@@ -40,7 +38,6 @@ class AllExamples(
         Example3, 
         Example2, 
         Example1,
-        AllThermoExamples
     ):
 
 

@@ -14,8 +14,9 @@ try:
 except Exception:
     pass
 
-from classes.examples import AllExamples
+from geostatistics.examples import AllExamples
 from seismic_examples.all_seismic_examples import AllSeismicExamples
+from thermodynamics.all_thermo_examples import AllThermoExamples
 
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap

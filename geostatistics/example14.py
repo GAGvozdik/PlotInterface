@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLay
 import numpy as np
 import geone as gn
 from matplotlib.colors import LinearSegmentedColormap
-from .interface import PlotInterface
+from classes.interface import PlotInterface
 import matplotlib.pyplot as plt
 from pathlib import Path
 
