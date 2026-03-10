@@ -76,6 +76,24 @@ class PlotInterface(GraphObjects):
         # Прижимаем кнопки к верху
         self.sidebar_box.layout().addStretch(1)
 
+        # Блок переключения темы
+        self.theme_box = self.createBox(self.sidebar_layout, "THEME")
+        self.theme_box.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        self.theme_box.layout().setSpacing(10)
+
+        self.themeGroup = QButtonGroup(self)
+        self.radio_dark = QRadioButton("Dark")
+        self.radio_light = QRadioButton("Light")
+        
+        self.radio_dark.setChecked(True)
+        self.themeGroup.addButton(self.radio_dark)
+        self.themeGroup.addButton(self.radio_light)
+        
+        self.addToBox(self.theme_box, self.radio_dark)
+        self.addToBox(self.theme_box, self.radio_light)
+        
+        self.themeGroup.buttonClicked.connect(self.switchTheme)
+
         # Основной контент
         self.main_content_widget = QWidget(self)
         self.main_content_layout = QVBoxLayout()
@@ -125,6 +143,53 @@ class PlotInterface(GraphObjects):
         """Переключение видимости бокового меню."""
         self.sidebar_widget.setVisible(not self.sidebar_widget.isVisible())
         
+    def switchTheme(self):
+        """Переключение тем оформления и синхронизация цветов графиков."""
+        checked_button = self.themeGroup.checkedButton()
+        if not checked_button:
+            return
+            
+        theme_name = checked_button.text().lower()
+        current_dir = Path(__file__).parent.parent.resolve()
+        qss_path = current_dir / "styles" / f"{theme_name}Theme.qss"
+        
+        # Обновляем цвета для matplotlib
+        if theme_name == "dark":
+            self.dividerColor = '#2E2E2E'   
+            self.windowColor = self.dividerColor
+            self.widgetColor = '#6e6e6e'
+            self.graphColor = '#4c4c4c'
+            self.ticksColor = '#b5b5b5'
+            self.gridColor = '#6e6e6e'
+            self.ticksWidth = 2.5
+            self.darkMode = True
+        else:
+            self.dividerColor = '#d6d6d6'   
+            self.windowColor = self.dividerColor
+            self.gridColor = 'grey'
+            self.widgetColor = 'black'
+            self.graphColor = '#d6d6d6'
+            self.ticksColor = 'black'
+            self.ticksWidth = 1
+            self.darkMode = False
+
+        # Применяем QSS
+        if qss_path.exists():
+            with open(qss_path, "r") as f:
+                QApplication.instance().setStyleSheet(f.read())
+        
+        # Обновляем заголовок окна (Windows)
+        if pywinstyles:
+            try:
+                style = "dark" if theme_name == "dark" else "normal"
+                pywinstyles.apply_style(self, style)
+            except Exception as e:
+                print(f"Failed to apply pywinstyles: {e}")
+
+        # Перерисовываем текущие вкладки (если нужно обновить графики сразу)
+        # В данном проекте графики обновляются при рисовании, 
+        # но переменные цветов уже изменены.
+
     def clearTabs(self):
         """Полная очистка вкладок."""
         while self.tabs.count() > 0:
