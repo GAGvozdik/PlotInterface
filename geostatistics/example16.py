@@ -12,9 +12,8 @@ from matplotlib.colors import LinearSegmentedColormap
 from pathlib import Path
 from classes.interface import PlotInterface
 
-class Example16(PlotInterface):
-    def __init__(self):
-        super().__init__()
+class Example16:
+    def init_geostat_16(self):
 
         self.tab16 = self.createTab('Ex16')
 

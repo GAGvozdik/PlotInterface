@@ -3,9 +3,8 @@ import numpy as np
 from pathlib import Path
 
 # INTERFACE 2
-class Example2(PlotInterface):
-    def __init__(self):
-        super().__init__()
+class Example2:
+    def init_geostat_02(self):
         self.tab02 = self.createTab('Ex02')
 
         self.qdial02 = self.createQDial(

@@ -19,9 +19,8 @@ from matplotlib.colors import ListedColormap
 
 
 
-class SeismicExample02(PlotInterface):
-    def __init__(self):
-        super().__init__()
+class SeismicExample02:
+    def init_seismic_02(self):
 
 
 

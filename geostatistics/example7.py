@@ -3,9 +3,8 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 
-class Example7(PlotInterface):
-    def __init__(self):
-        super().__init__()
+class Example7:
+    def init_geostat_07(self):
 
         self.tab07 = self.createTab('Ex07')
 

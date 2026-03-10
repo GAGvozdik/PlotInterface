@@ -4,10 +4,11 @@ from classes.interface import PlotInterface
 
 class AllThermoExamples(
         ThermoExample01,
-        ThermoExample02
+        ThermoExample02,
+        PlotInterface
     ):
 
-    def __init__(self):
-        super().__init__()
-
-
+    def init_thermo_tabs(self):
+        """Инициализация всех вкладок термодинамики."""
+        self.init_thermo_01()
+        self.init_thermo_02()

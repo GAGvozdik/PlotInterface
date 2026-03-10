@@ -2,9 +2,8 @@ from classes.interface import PlotInterface
 import pandas as pd
 from pathlib import Path
 
-class Example6(PlotInterface):
-    def __init__(self):
-        super().__init__()
+class Example6:
+    def init_geostat_06(self):
 
         self.tab06 = self.createTab('Ex06')
 

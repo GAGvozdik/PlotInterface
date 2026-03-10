@@ -54,9 +54,8 @@ class CalculationWorker(QObject):
             
         self.finished.emit(t)
 
-class ThermoExample01(PlotInterface):
-    def __init__(self):
-        super().__init__()
+class ThermoExample01:
+    def init_thermo_01(self):
 
         # Параметры сетки (по умолчанию)
         self.nx = 70

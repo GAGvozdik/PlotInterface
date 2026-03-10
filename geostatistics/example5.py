@@ -4,9 +4,8 @@ from matplotlib.colors import LinearSegmentedColormap
 from pathlib import Path
 
 # INTERFACE 5
-class Example5(PlotInterface):
-    def __init__(self):
-        super().__init__()
+class Example5:
+    def init_geostat_05(self):
 
         self.tab05 = self.createTab('Ex05')
 

@@ -18,9 +18,8 @@ from .seismic_functions.add_geometric_spreading import add_geometric_spreading
 from matplotlib.colors import ListedColormap
 
 # INTERFACE 3
-class SeismicExample03(PlotInterface):
-    def __init__(self):
-        super().__init__()
+class SeismicExample03:
+    def init_seismic_03(self):
 
         np.random.seed(10)
         self.__dt = 0.001

@@ -6,9 +6,8 @@ from classes.interface import PlotInterface
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-class Example14(PlotInterface):
-    def __init__(self):
-        super().__init__()
+class Example14:
+    def init_geostat_14(self):
         
         self.hmax14 = 20000
         self.ncla14 = 30

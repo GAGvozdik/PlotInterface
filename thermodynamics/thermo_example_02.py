@@ -9,8 +9,6 @@ import os
 class MeltingWorker(QObject):
     """
     Векторизованный воркер для расчета 2D теплопроводности с плавлением.
-    Реализован переменный шаг времени и прореживание данных для экономии памяти.
-    Используется явное указание dtype=np.float64 для предотвращения CastingError.
     """
     progress = pyqtSignal(int)
     finished = pyqtSignal(dict)
@@ -20,8 +18,8 @@ class MeltingWorker(QObject):
         self.p = params
         self.nx = params['nx_02']
         self.ny = params['ny_02']
-        self.m_visual = params['m_02'] # 2000 шагов для визуализации
-        self.m_total = 20000           # 20000 шагов расчета
+        self.m_visual = params['m_02'] 
+        self.m_total = 20000           
         self.ram = params['ram_02']
 
     def run(self):
@@ -30,17 +28,14 @@ class MeltingWorker(QObject):
         m_visual = self.m_visual
         m_total = self.m_total
 
-        # Массивы только для визуализации (каждый 10-й шаг)
         t_res = np.zeros((m_visual, nx, ny), dtype=np.float64)
         c_res = np.zeros((m_visual, nx, ny), dtype=np.float64)
         ro_res = np.zeros((m_visual, nx, ny), dtype=np.float64)
         lmbd_res = np.zeros((m_visual, nx, ny), dtype=np.float64)
 
-        # Маски для внутреннего и внешнего регионов
         inner_mask = np.zeros((nx, ny), dtype=bool)
         inner_mask[self.ram:nx-self.ram, self.ram:ny-self.ram] = True
 
-        # Предрассчитанные поля коэффициентов
         a_field = np.where(inner_mask, p['a1'], p['a2'])
         b_field = np.where(inner_mask, p['b1'], p['b2'])
         d_field = np.where(inner_mask, p['d1'], p['d2'])
@@ -64,12 +59,10 @@ class MeltingWorker(QObject):
             c_new += lcr_field * melt_deg
             return ro_new, lmbd_new, c_new
 
-        # Начальное состояние
         t_curr = np.where(inner_mask, p['t1'], p['t2']).astype(np.float64)
         ro_curr = np.where(inner_mask, p['ro1'], p['ro2']).astype(np.float64)
         _, lmbd_curr, c_curr = get_props(t_curr, t_curr, ro_curr)
 
-        # Сохраняем начальный шаг
         t_res[0], c_res[0], ro_res[0], lmbd_res[0] = t_curr, c_curr, ro_curr, lmbd_curr
 
         dx2, dy2 = p['dx_02']**2, p['dy_02']**2
@@ -78,22 +71,15 @@ class MeltingWorker(QObject):
 
         for k in range(1, m_total):
             dt = dt_small if k < 2000 else dt_large
-            
             t_next = t_curr.copy()
-            # Векторизованный расчет теплопроводности
             term_x = (lmbd_curr[2:, 1:-1] * (t_curr[2:, 1:-1] - t_curr[1:-1, 1:-1]) - 
                       lmbd_curr[1:-1, 1:-1] * (t_curr[1:-1, 1:-1] - t_curr[:-2, 1:-1])) / dx2
             term_y = (lmbd_curr[1:-1, 2:] * (t_curr[1:-1, 2:] - t_curr[1:-1, 1:-1]) - 
                       lmbd_curr[1:-1, 1:-1] * (t_curr[1:-1, 1:-1] - t_curr[1:-1, :-2])) / dy2
-            
             t_next[1:-1, 1:-1] += (dt / (ro_curr[1:-1, 1:-1] * c_curr[1:-1, 1:-1])) * (term_x + term_y)
-            
-            # Обновление свойств
             ro_next, lmbd_next, c_next = get_props(t_next, t_curr, ro_curr)
-            
             t_curr, ro_curr, lmbd_curr, c_curr = t_next, ro_next, lmbd_next, c_next
 
-            # Прореживание для визуализации: сохраняем каждый 10-й шаг
             if k % 10 == 0:
                 idx = k // 10
                 if idx < m_visual:
@@ -107,22 +93,18 @@ class MeltingWorker(QObject):
         
         self.finished.emit({'t': t_res, 'c': c_res, 'ro': ro_res, 'lmbd': lmbd_res})
 
-class ThermoExample02(PlotInterface):
-    def __init__(self):
-        super().__init__()
-        # Параметры модели
+class ThermoExample02:
+    def _init_params_02(self):
+        """Инициализация физических параметров и данных."""
         self.nx_02, self.ny_02 = 100, 100
         self.ram_02 = self.nx_02 // 4
-        self.m_02 = 2000 # Размерность для визуализации
+        self.m_02 = 2000 
         self.L_02 = 1000
-        # Динамический возраст (по умолчанию 800 лет)
         self.sim_age_years_02 = 800
         self.tm_02 = self.sim_age_years_02 * (60 * 60 * 24 * 30 * 12)
-        
         self.dx_02, self.dy_02 = self.L_02 / self.nx_02, self.L_02 / self.ny_02
         self.dt_small_02 = self.tm_02 / 182000
 
-        # Физика
         self.alpha_02 = 3 * 10 ** -5
         self.ro1, self.ro2 = 3000.0, 2700.0
         self.t1, self.t2 = 1300 + 273, 0 + 273
@@ -135,21 +117,21 @@ class ThermoExample02(PlotInterface):
         self.d2, self.e2, self.f2, self.g2, self.h2 = -228.24, 3.38e8, -3.47e10, 110880, -2378100
 
         self.init_data_02()
-
-        # Объекты графиков
         self.thermo_02_axes = {}
         self.im_objects_02 = {}
         self.slice_lines_02 = {}
-        self.init_thermo_02()
 
     def init_data_02(self):
-        """Инициализация массивов данных для визуализации с float64."""
         self.t_02 = np.zeros((self.m_02, self.nx_02, self.ny_02), dtype=np.float64)
         self.c_02 = np.zeros((self.m_02, self.nx_02, self.ny_02), dtype=np.float64)
         self.ro_02 = np.zeros((self.m_02, self.nx_02, self.ny_02), dtype=np.float64)
         self.lmbd_02 = np.zeros((self.m_02, self.nx_02, self.ny_02), dtype=np.float64)
 
     def init_thermo_02(self):
+        """Создание интерфейса 2D Melting."""
+        # Вызываем инициализацию параметров перед созданием UI
+        self._init_params_02()
+
         tab_layout = self.createTab('2D Melting')
         slider_box = self.tabAtr('2D MeltingSliderBox')
         ctrl_group = self.createBox(tab_layout, 'Calculation Controls')
@@ -178,16 +160,16 @@ class ThermoExample02(PlotInterface):
         self.addToBox(ctrl_group, self.prog_widget_02)
         self.style_progress_bar_02()
 
-        # Step QDial (0-1999)
+        # Step QDial
         self.createQDial(0, self.m_02 - 1, 0, tab=tab_layout, 
                          func=self.update_thermo_02_plots, name='Step_02', label=True)
 
-        # Grid Size QSlider (20-250)
+        # Grid Size QSlider
         self.createSlider(20, 250, tab=tab_layout, init=100,
                           func=self.update_grid_size_label_02, name='Grid Size (NX/NY)_02', label=True)
         getattr(self, 'Grid Size (NX/NY)_02 slider').sliderReleased.connect(self.change_grid_size_02)
 
-        # Simulation Age QSlider (100-10000 years)
+        # Simulation Age QSlider
         self.createSlider(100, 10000, tab=tab_layout, init=800,
                           func=self.change_sim_age_02, name='Simulation Age_02', label=True)
 
@@ -196,28 +178,13 @@ class ThermoExample02(PlotInterface):
     def draw_thermo_02_axes(self):
         fig = self.tabAtr('2D MeltingFigure')
         fig.clear()
-        
-        # Задача 3: Использование GridSpec для управления макетом
         gs = GridSpec(3, 3, figure=fig, wspace=0.3, hspace=0.3)
         
         self.ax_t_02 = fig.add_subplot(gs[0:2, 0:2])
-        self.ax_t_02.set_title('Temperature (T)', color=self.ticksColor)
-        self.ax_t_02.set_aspect('equal', adjustable='box')
-        
         self.ax_slices_02 = fig.add_subplot(gs[2, 0:2])
-        self.ax_slices_02.set_title('Center Slices (Normalized)', color=self.ticksColor)
-        
         self.ax_c_02 = fig.add_subplot(gs[0, 2])
-        self.ax_c_02.set_title('Heat Capacity (C)', color=self.ticksColor)
-        self.ax_c_02.set_aspect('equal', adjustable='box')
-        
         self.ax_ro_02 = fig.add_subplot(gs[1, 2])
-        self.ax_ro_02.set_title('Density (Ro)', color=self.ticksColor)
-        self.ax_ro_02.set_aspect('equal', adjustable='box')
-        
         self.ax_lmbd_02 = fig.add_subplot(gs[2, 2])
-        self.ax_lmbd_02.set_title('Conductivity (L)', color=self.ticksColor)
-        self.ax_lmbd_02.set_aspect('equal', adjustable='box')
         
         self.thermo_02_axes = {
             'T': self.ax_t_02, 'C': self.ax_c_02, 
@@ -253,7 +220,6 @@ class ThermoExample02(PlotInterface):
             
         self.ax_slices_02.set_ylim(-0.05, 1.05)
         self.ax_slices_02.legend(loc='upper right', fontsize=10)
-        
         fig.subplots_adjust(left=0.05, right=0.95, top=0.95, bottom=0.05, wspace=0.3, hspace=0.3)
 
     def update_grid_size_label_02(self, value):
@@ -264,13 +230,10 @@ class ThermoExample02(PlotInterface):
         slider = getattr(self, 'Grid Size (NX/NY)_02 slider', None)
         if not slider: return
         value = slider.value()
-        self.nx_02 = value
-        self.ny_02 = value
+        self.nx_02, self.ny_02 = value, value
         self.ram_02 = self.nx_02 // 4
-        self.dx_02 = self.L_02 / self.nx_02
-        self.dy_02 = self.L_02 / self.ny_02
+        self.dx_02, self.dy_02 = self.L_02 / self.nx_02, self.L_02 / self.ny_02
         self.init_data_02()
-        
         self.draw_thermo_02_axes()
         self.tabAtr('2D MeltingCanvas').draw_idle()
 
@@ -278,24 +241,15 @@ class ThermoExample02(PlotInterface):
         self.sim_age_years_02 = value
         self.tm_02 = value * (60 * 60 * 24 * 30 * 12)
         self.dt_small_02 = self.tm_02 / 182000
-        
         label = getattr(self, "Simulation Age_02 Slider Label", None)
         if label: label.setText(f"{value} years")
 
     def style_progress_bar_02(self):
         bg_color = self.graphColor if self.darkMode else "#f0f0f0"
         border_color = self.widgetColor if self.darkMode else "#d0d0d0"
-        
         self.p_bar_02.setStyleSheet(f"""
-            QProgressBar {{
-                border: 1px solid {border_color};
-                border-radius: 3px;
-                background-color: {bg_color};
-                height: 15px;
-            }}
-            QProgressBar::chunk {{
-                background-color: {self.ticksColor};
-            }}
+            QProgressBar {{ border: 1px solid {border_color}; border-radius: 3px; background-color: {bg_color}; height: 15px; }}
+            QProgressBar::chunk {{ background-color: {self.ticksColor}; }}
         """)
         self.p_lbl_02.setStyleSheet(f"color: {self.ticksColor}; font-weight: bold;")
 
@@ -326,18 +280,11 @@ class ThermoExample02(PlotInterface):
     def update_thermo_02_plots(self, val):
         if not hasattr(self, 't_02') or self.t_02.ndim < 3 or self.t_02.shape[0] <= val:
             return
-            
         label = getattr(self, "Step_02 QDial Label", None)
         if label: label.setText(str(val))
-
-        data_dict = {
-            'T': self.t_02[val], 'C': self.c_02[val], 
-            'Ro': self.ro_02[val], 'Lmbd': self.lmbd_02[val]
-        }
-        
+        data_dict = {'T': self.t_02[val], 'C': self.c_02[val], 'Ro': self.ro_02[val], 'Lmbd': self.lmbd_02[val]}
         for key in ['T', 'C', 'Ro', 'Lmbd']:
             self.im_objects_02[key].set_data(data_dict[key])
-
         curr_nx = data_dict['T'].shape[0]
         x_vals = np.arange(curr_nx)
         for key in ['T', 'C', 'Ro', 'Lmbd']:
@@ -345,7 +292,6 @@ class ThermoExample02(PlotInterface):
             d_min, d_max = slice_raw.min(), slice_raw.max()
             slice_norm = (slice_raw - d_min) / (d_max - d_min) if d_max > d_min else np.zeros_like(slice_raw)
             self.slice_lines_02[key].set_data(x_vals, slice_norm)
-        
         self.ax_slices_02.set_xlim(0, curr_nx - 1)
 
     def write_thermo_data(self):

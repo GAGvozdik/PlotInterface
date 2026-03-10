@@ -12,9 +12,8 @@ from PyQt5.QtWidgets import QGridLayout
 from classes.interface import PlotInterface
 from pathlib import Path
 
-class Example13(PlotInterface):
-    def __init__(self):
-        super().__init__()
+class Example13:
+    def init_geostat_13(self):
 
 
         self.tab13 = self.createTab('Ex13')

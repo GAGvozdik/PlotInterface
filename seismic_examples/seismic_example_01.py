@@ -19,9 +19,8 @@ from matplotlib.colors import ListedColormap
 from .seismic_functions.reflect_from_model import reflec_from_model
 
 # INTERFACE 1
-class SeismicExample01(PlotInterface):
-    def __init__(self):
-        super().__init__()
+class SeismicExample01:
+    def init_seismic_01(self):
 
         # Define the input parameters
         self.__v = np.array([1000, 2000, 1500, 5000, 7000, 2500])  # Velocity in m/s

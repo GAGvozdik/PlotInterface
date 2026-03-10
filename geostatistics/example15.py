@@ -9,9 +9,8 @@ from matplotlib.colors import LinearSegmentedColormap
 from classes.interface import PlotInterface
 from pathlib import Path
 
-class Example15(PlotInterface):
-    def __init__(self):
-        super().__init__()
+class Example15:
+    def init_geostat_15(self):
 
         self.tab15 = self.createTab('Ex15')
         self.loadData15()

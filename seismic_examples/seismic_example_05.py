@@ -1,54 +1,6 @@
 from classes.interface import PlotInterface
 import numpy as np
 from pathlib import Path
-import numpy as np
-import time
-import matplotlib.pyplot as plt
-import warnings
-from scipy.fftpack import fft, ifft  
-from scipy.signal import convolve, wiener
-from scipy.optimize import minimize
-from .seismic_functions.wiener_deconvolution import wiener_deconvolution
-from .seismic_functions.convm import convm
-from .seismic_functions.wavemin import wavemin
-from .seismic_functions.reflect_from_model import reflec_from_model
-from .seismic_functions.add_multiples import add_multiples
-from .seismic_functions.absorption import absorption
-from .seismic_functions.add_geometric_spreading import add_geometric_spreading
-from matplotlib.colors import ListedColormap
-
-# INTERFACE 4
-class SeismicExample05(PlotInterface):
-    def __init__(self):
-        super().__init__()
-
-from classes.interface import PlotInterface
-import numpy as np
-from pathlib import Path
-import numpy as np
-import time
-import matplotlib.pyplot as plt
-import warnings
-from scipy.fftpack import fft, ifft  
-from scipy.signal import convolve, wiener
-from scipy.optimize import minimize
-from .seismic_functions.wiener_deconvolution import wiener_deconvolution
-from .seismic_functions.convm import convm
-from .seismic_functions.wavemin import wavemin
-from .seismic_functions.reflect_from_model import reflec_from_model
-from .seismic_functions.add_multiples import add_multiples
-from .seismic_functions.absorption import absorption
-from .seismic_functions.add_geometric_spreading import add_geometric_spreading
-from matplotlib.colors import ListedColormap
-
-# INTERFACE 1
-class SeismicExample01(PlotInterface):
-    def __init__(self):
-        super().__init__()
-from classes.interface import PlotInterface
-import numpy as np
-from pathlib import Path
-import numpy as np
 import time
 import matplotlib.pyplot as plt
 import warnings
@@ -65,11 +17,8 @@ from .seismic_functions.add_geometric_spreading import add_geometric_spreading
 from matplotlib.colors import ListedColormap
 
 # INTERFACE 5
-class SeismicExample05(PlotInterface):
-    def __init__(self):
-        super().__init__()
-
-
+class SeismicExample05:
+    def init_seismic_05(self):
         # Define the input parameters
         self.__v = np.array([1000, 2000, 1500, 5000, 7000, 2500])  # Velocity in m/s
         self.__rho = np.array([2500, 2700, 2000, 4500, 4800, 2900])  # Density in kg/m^3
@@ -81,7 +30,7 @@ class SeismicExample05(PlotInterface):
         
         # Define the dominant frequency for absorption
         self.__fdom = 20  # Dominant frequency in Hz
-        self.__noize = 0  # Dominant frequency in Hz
+        self.__noize = 0  # Noise level
 
 
         self.__tab = self.createTab('Ex05')
@@ -182,4 +131,3 @@ class SeismicExample05(PlotInterface):
 
         self.__ax.set_ylim([-self.__yScale, self.__yScale])
         self.__ax.set_xlim([0.1, self.__xScale])
-        

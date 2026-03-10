@@ -3,9 +3,8 @@ import numpy as np
 from matplotlib.colors import ListedColormap
 from pathlib import Path
 
-class Example4(PlotInterface):
-    def __init__(self):
-        super().__init__()
+class Example4:
+    def init_geostat_04(self):
 
         self.tab04 = self.createTab('Ex04')
 

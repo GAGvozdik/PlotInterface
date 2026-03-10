@@ -2,14 +2,13 @@
 import numpy as np
 import sys
 import pandas as pd
-import geone as gn
 from pathlib import Path
 import os
 import ctypes
 
 # Фикс для корректного отображения иконки в панели задач Windows
 try:
-    myappid = 'mycompany.myproduct.subproduct.version' # произвольная строка
+    myappid = 'geophysics.plotinterface.v4'
     ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 except Exception:
     pass
@@ -19,14 +18,7 @@ from seismic_examples.all_seismic_examples import AllSeismicExamples
 from thermodynamics.all_thermo_examples import AllThermoExamples
 from classes.interface import PlotInterface
 
-import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap
-from matplotlib.colors import LinearSegmentedColormap
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-
-from PyQt5.QtWidgets import QApplication, QWidget, QTabWidget
-from PyQt5.QtWidgets import QGridLayout
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QFileDialog
+from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QIcon
 
 try:
@@ -34,16 +26,13 @@ try:
 except ImportError:
     pywinstyles = None
 
-def resource_path(relative_path):
-    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base_path, relative_path)
-
-class MainApp(PlotInterface):
+class MainApp(AllExamples, AllSeismicExamples, AllThermoExamples, PlotInterface):
 
     def __init__(self):
+        # 1. Инициализация базового интерфейса (конструктор ОДИН)
         super().__init__()
 
-        # Настройка иконки и стиля окна
+        # 2. Настройка окна
         icon_path = str(Path(__file__).parent.resolve() / "styles" / "custom_icon.ico")
         self.setWindowIcon(QIcon(icon_path))
         
@@ -53,51 +42,35 @@ class MainApp(PlotInterface):
             except Exception as e:
                 print(f"Failed to apply pywinstyles: {e}")
 
-        # Режимы работы (наборы примеров)
-        self.modes = {
-            "Геостатистика": AllExamples,
-            "Сейсмика": AllSeismicExamples,
-            "Термодинамика": AllThermoExamples
-        }
+        # 3. Настройка селектора в Sidebar
+        self.modeSelector.addItems(["Общие", "Сейсмика", "Термодинамика"])
+        self.modeSelector.currentIndexChanged.connect(self.change_mode)
         
-        # Настройка селектора
-        self.modeSelector.addItems(list(self.modes.keys()))
-        self.modeSelector.currentIndexChanged.connect(self.change_example_mode)
-        
-        # Инициализация первого режима по умолчанию
-        self.change_example_mode()
+        # 4. Загрузка начального режима
+        self.change_mode()
 
-    def change_example_mode(self):
-        """Динамическое переключение набора вкладок."""
+    def change_mode(self):
+        """Переключение набора вкладок через методы унаследованных миксинов."""
+        selected_text = self.modeSelector.currentText()
+        print(f"Switching to: {selected_text}")
+        
         self.clearTabs()
-        selected_mode = self.modeSelector.currentText()
-        mode_class = self.modes.get(selected_mode)
         
-        if mode_class:
-            # Вызываем инициализацию миксина. 
-            # Благодаря флагу _setup_done в PlotInterface, ядро UI не будет пересоздано.
-            mode_class.__init__(self)
-            print(f"Switched to mode: {selected_mode}")
-
+        if selected_text == "Общие":
+            self.init_all_tabs()
+        elif selected_text == "Сейсмика":
+            self.init_seismic_tabs()
+        elif selected_text == "Термодинамика":
+            self.init_thermo_tabs()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     
-    with open(Path(__file__).parent.resolve()  / "styles" / "darkTheme.qss", "r") as f:
-        style = f.read()
-        app.setStyleSheet(style)
-        
-    # with open(resource_path("styles/darkTheme.qss"), "r") as f:
-    #     app.setStyleSheet(f.read())
+    qss_path = Path(__file__).parent.resolve() / "styles" / "darkTheme.qss"
+    if qss_path.exists():
+        with open(qss_path, "r") as f:
+            app.setStyleSheet(f.read())
     
     window = MainApp()
-    
-    if pywinstyles:
-        try:
-            pywinstyles.apply_style(window, "dark")
-        except Exception as e:
-            print(f"Failed to apply pywinstyles: {e}")
-
     window.show()
     sys.exit(app.exec_())
-

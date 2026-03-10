@@ -1,6 +1,6 @@
 import sys
 import numpy as np
-from PyQt5.QtWidgets import QApplication, QWidget, QTabWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QSlider, QGridLayout, QGroupBox, QDial
+from PyQt5.QtWidgets import QMainWindow, QWidget, QTabWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QSlider, QGridLayout, QGroupBox, QDial
 from PyQt5.QtCore import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure 
@@ -10,7 +10,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 
-class GraphObjects(QWidget):
+class GraphObjects(QMainWindow):
     def __init__(self):
         super().__init__()  
 

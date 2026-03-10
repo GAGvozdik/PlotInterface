@@ -9,16 +9,18 @@ from .seismic_example_05 import SeismicExample05
 from classes.interface import PlotInterface
 
 class AllSeismicExamples(
-    
         SeismicExample05,
         SeismicExample04,
         SeismicExample03,
         SeismicExample02,
-        SeismicExample01
+        SeismicExample01,
+        PlotInterface
     ):
 
-
-    def __init__(self):
-        super().__init__()
-
-
+    def init_seismic_tabs(self):
+        """Инициализация всех вкладок сейсмики."""
+        self.init_seismic_05()
+        self.init_seismic_04()
+        self.init_seismic_03()
+        self.init_seismic_02()
+        self.init_seismic_01()

@@ -1,3 +1,4 @@
+
 import sys
 import time
 import numpy as np
@@ -18,47 +19,127 @@ except ImportError:
 
 class PlotInterface(GraphObjects):
     def __init__(self):
+        super().__init__()  
+
+        # Защита от повторной инициализации при динамической смене режимов
         if hasattr(self, '_setup_done') and self._setup_done:
             return
-        super().__init__()  
 
         self._setup_done = True
         self.setWindowTitle("Module plot interface")
         self.setGeometry(250, 100, 1600, 900)
 
         self.layout = QHBoxLayout()
-        self.setLayout(self.layout)
         self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.setSpacing(10)
 
+        # Внедрение центрального виджета для QMainWindow
+        self.central_widget = QWidget(self)
+        self.setCentralWidget(self.central_widget)
+        self.central_widget.setLayout(self.layout)
+
         # Боковая панель
-        self.sidebar_widget = QWidget()
+        self.sidebar_widget = QWidget(self)
         self.sidebar_widget.setFixedWidth(300)
-        self.sidebar_widget.setVisible(False)
+        self.sidebar_widget.setVisible(True) # Включаем видимость по умолчанию
         self.sidebar_layout = QVBoxLayout()
-        self.sidebar_layout.setContentsMargins(10, 10, 0, 10)
-        self.sidebar_layout.setSpacing(10)
+        self.sidebar_layout.setContentsMargins(15, 15, 15, 15)
+        self.sidebar_layout.setSpacing(15)
         self.sidebar_widget.setLayout(self.sidebar_layout)
-        self.layout.addWidget(self.sidebar_widget)
+        
+        # Добавляем в лейаут с коэффициентом растяжения 0 (не растягивается)
+        self.layout.addWidget(self.sidebar_widget, 0)
+
+
+        # Стилизация боковой панели (Sidebar)
+        self.sidebar_widget.setStyleSheet("""
+            QWidget {
+                background-color: #252525;
+                border-right: 1px solid #3d3d3d;
+            }
+            QGroupBox {
+                color: #e0e0e0;
+                font-weight: bold;
+                border: 1px solid #3d3d3d;
+                margin-top: 20px;
+                padding-top: 20px;
+                border-radius: 8px;
+                background-color: #2a2a2a;
+            }
+            QGroupBox::title {
+                subcontrol-origin: margin;
+                subcontrol-position: top center;
+                padding: 0 10px;
+                background-color: #2a2a2a;
+                border-radius: 4px;
+            }
+            QComboBox {
+                background-color: #3d3d3d;
+                color: #ffffff;
+                border: 1px solid #555555;
+                border-radius: 6px;
+                padding: 8px;
+                font-size: 16px;
+                min-height: 35px;
+            }
+            QComboBox:hover {
+                background-color: #4a4a4a;
+                border: 1px solid #666666;
+            }
+            QComboBox::drop-down {
+                border: none;
+                width: 30px;
+            }
+            QComboBox QAbstractItemView {
+                background-color: #2d2d2d;
+                color: #ffffff;
+                selection-background-color: #4c4c4c;
+                outline: none;
+                border: 1px solid #3d3d3d;
+            }
+            QPushButton {
+                background-color: #3d3d3d;
+                color: #ffffff;
+                border: 1px solid #555555;
+                border-radius: 6px;
+                padding: 12px;
+                font-weight: bold;
+                font-size: 14px;
+            }
+            QPushButton:hover {
+                background-color: #4c4c4c;
+                border-color: #777777;
+            }
+            QPushButton:pressed {
+                background-color: #2a2a2a;
+            }
+            QLabel {
+                color: #b5b5b5;
+                background-color: transparent;
+                font-size: 14px;
+            }
+        """)
 
         # Селектор режима
-        self.mode_box = self.createBox(self.sidebar_layout, "Category")
+        self.mode_box = self.createBox(self.sidebar_layout, "CATEGORY")
         self.mode_box.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         self.modeSelector = QComboBox()
         self.modeSelector.setFixedHeight(40)
         self.addToBox(self.mode_box, self.modeSelector)
 
         # Наполнение боковой панели
-        self.sidebar_box = self.createBox(self.sidebar_layout, "Navigation")
+        self.sidebar_box = self.createBox(self.sidebar_layout, "NAVIGATION")
         self.sidebar_box.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         # Основной контент
-        self.main_content_widget = QWidget()
+        self.main_content_widget = QWidget(self)
         self.main_content_layout = QVBoxLayout()
         self.main_content_layout.setContentsMargins(10, 10, 10, 10)
         self.main_content_layout.setSpacing(0)
         self.main_content_widget.setLayout(self.main_content_layout)
-        self.layout.addWidget(self.main_content_widget)
+        
+        # Добавляем в лейаут с коэффициентом растяжения 1 (растягивается)
+        self.layout.addWidget(self.main_content_widget, 1)
 
         # Кнопка переключения сайдбара
         self.toggle_sidebar_btn = QPushButton("☰")
@@ -95,136 +176,15 @@ class PlotInterface(GraphObjects):
         self.darkMode = True
         self.fileName = None
 
-        self.dark_mode = True  # Текущая тема
-
-        self.app = QApplication.instance()
-        
     def toggle_sidebar(self):
         """Переключение видимости бокового меню."""
         self.sidebar_widget.setVisible(not self.sidebar_widget.isVisible())
         
     def clearTabs(self):
-        """Полная очистка вкладок и связанных динамических объектов."""
+        """Полная очистка вкладок."""
         while self.tabs.count() > 0:
-            tab_name = self.tabs.tabText(0)
-            
-            # Удаляем атрибуты, связанные с этой вкладкой
-            attrs_to_del = [
-                tab_name,
-                f"{tab_name}GraphBox",
-                f"{tab_name}SliderBox",
-                f"{tab_name}Figure",
-                f"{tab_name}Canvas"
-            ]
-            
-            # Также ищем все слайдеры и надписи, которые могли быть созданы
-            # Это сложнее, так как их имена зависят от параметра name в createSlider
-            # Но для базовой очистки вкладок tabs.clear() достаточно.
-            
             self.tabs.removeTab(0)
             
-        # Очистка имен лейаутов из __dict__ не обязательна, если мы их пересоздаем,
-        # но для чистоты можно было бы реализовать более глубокий поиск.
-
-
-    def initThemeSwitcher(self):
-        """Создание радиокнопок для переключения темы."""
-        themeBox = QGroupBox("Theme")
-        themeBox.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        themeLayout = QVBoxLayout()
-        themeBox.setLayout(themeLayout)
-
-        darkRadio = QRadioButton("Dark")
-        lightRadio = QRadioButton("Light")
-        darkRadio.setChecked(True)
-
-        themeGroup = QButtonGroup()
-        themeGroup.addButton(darkRadio)
-        themeGroup.addButton(lightRadio)
-
-        darkRadio.toggled.connect(self.switchTheme)
-        lightRadio.toggled.connect(self.switchTheme)
-
-        themeLayout.addWidget(darkRadio)
-        themeLayout.addWidget(lightRadio)
-            
-        return themeBox
-            
-    def switchTheme(self):
-        sender = self.sender()
-        if isinstance(sender, QRadioButton):
-            theme_name = sender.text().lower()
-            qss_path = Path(__file__).parent.parent / "styles" / f"{theme_name}Theme.qss"
-
-            # Обновляем цвета для matplotlib
-            if theme_name == "dark":
-                self.dividerColor = '#2E2E2E'   
-                self.windowColor = self.dividerColor
-                self.widgetColor = '#6e6e6e'
-                self.graphColor = '#4c4c4c'
-                self.ticksColor = '#b5b5b5'
-                self.gridColor = '#6e6e6e'
-                self.ticksWidth = 2.5
-            else:
-                self.dividerColor = '#d6d6d6'   
-                self.windowColor = self.dividerColor
-                self.gridColor = 'grey'
-                self.widgetColor = 'black'
-                self.graphColor = '#d6d6d6'
-                self.ticksColor = 'black'
-                self.ticksWidth = 1
-
-            # Применяем QSS стиль
-            try:
-                with open(qss_path, "r") as f:
-                    QApplication.instance().setStyleSheet(f.read())
-            except Exception as e:
-                print(f"Ошибка при загрузке стиля: {e}")
-
-            # Динамическое изменение стиля системной шапки (Windows)
-            if pywinstyles:
-                try:
-                    # 'dark' для темной темы, 'normal' или 'light' для светлой
-                    style_type = "dark" if theme_name == "dark" else "normal"
-                    pywinstyles.apply_style(self, style_type)
-                except Exception as e:
-                    print(f"Ошибка pywinstyles: {e}")
-
-            # Обновляем фигуры и canvas
-            for i in range(self.tabs.count()):
-                tab_name = self.tabs.tabText(i)
-                fig = getattr(self, f"{tab_name}Figure", None)
-                canvas = getattr(self, f"{tab_name}Canvas", None)
-
-                if fig is not None and canvas is not None:
-                    fig.patch.set_facecolor(self.windowColor)
-                    for ax in fig.axes:
-                        self.updateAxesStyle(ax)
-                    canvas.draw()
-                    
-    def updateAxesStyle(self, ax):
-        ax.set_facecolor(self.graphColor)
-        ax.set_frame_on(True)
-        ax.title.set_color(self.ticksColor)
-        ax.xaxis.label.set_color(self.ticksColor)
-        ax.yaxis.label.set_color(self.ticksColor)
-
-        # Задача 3: Включаем все 4 границы (spines)
-        for spine in ax.spines.values():
-            spine.set_visible(True)
-            spine.set_color(self.widgetColor)
-            spine.set_linewidth(2.0)
-
-        ax.tick_params(axis='both', labelcolor=self.ticksColor,
-                    color=self.widgetColor, width=self.ticksWidth, length=6, labelsize=12)
-
-        # Обновим сетку, если она уже была включена
-        gridlines = ax.get_xgridlines() + ax.get_ygridlines()
-        if any(line.get_visible() for line in gridlines):
-            ax.grid(True, color=self.gridColor)
-
-
-
     def createTab(self, name):
         tab = QWidget()
         layout = QGridLayout()
@@ -260,16 +220,13 @@ class PlotInterface(GraphObjects):
         loadButton.clicked.connect(self.get_file_way)
         self.addToBox(sliderBox, loadButton)
 
-        themeBox = self.initThemeSwitcher()
-        self.addToBox(sliderBox, themeBox)
-
         spacer = QSpacerItem(20, 60, QSizePolicy.Minimum, QSizePolicy.Expanding)
         sliderBox.layout().addItem(spacer)
 
         return layout
 
     def tabAtr(self, name):
-        return getattr(self, f"{name}")
+        return getattr(self, f"{name}", None)
 
     def createSlider(self, min, max, tab, init=0, func='none', name='', label=False):
         sliderBox = self.createBox(tab, name, size=['auto', 100], v=True)
@@ -279,8 +236,6 @@ class PlotInterface(GraphObjects):
         slider.setMinimum(min)
         slider.setMaximum(max)
         slider.setValue(init)
-        slider.setSingleStep(1)
-        slider.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         slider.setFixedHeight(40)
 
         if func != 'none':
@@ -293,9 +248,7 @@ class PlotInterface(GraphObjects):
             self.addToBox(sliderBox, label_widget)
 
         setattr(self, f"{name} slider", slider)
-
         self.addToBox(self.tabAtr(f'{tab.objectName()}SliderBox'), sliderBox)
-
         return sliderBox
 
     def createQDial(self, min, max, init, tab, func='none', name='', label=False):
@@ -303,10 +256,8 @@ class PlotInterface(GraphObjects):
         dialBox.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         dial = QDial(self)
-        dial.move(0, 0)
         dial.setFixedSize(225, 150)
         dial.setRange(min, max)
-        dial.setSingleStep(1)
 
         if func != 'none':
             dial.valueChanged.connect(func)
@@ -318,14 +269,11 @@ class PlotInterface(GraphObjects):
             self.addToBox(dialBox, label_widget)
 
         setattr(self, f"{name} QDial", dial)
-
         self.addToBox(self.tabAtr(f'{tab.objectName()}SliderBox'), dialBox)
-
         return dialBox
 
     def createBox(self, tab, title='', position=[], size=['none', 'none'], v=True):
         box = QGroupBox(title)
-
         if isinstance(size[0], int) and isinstance(size[1], int):
             box.setFixedSize(size[0], size[1])
         elif size[0] == 'auto' and isinstance(size[1], int):
@@ -333,7 +281,6 @@ class PlotInterface(GraphObjects):
         elif isinstance(size[0], int) and size[1] == 'auto':
             box.setFixedWidth(size[0])
 
-        # По умолчанию – растягиваемый блок
         if size == ['none', 'none']:
             box.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
@@ -341,154 +288,70 @@ class PlotInterface(GraphObjects):
 
         if v == True:
             layout = QVBoxLayout()
-            layout.setContentsMargins(5, 5, 5, 5)
-            layout.setSpacing(18)
-            box.setLayout(layout)
-        elif v == 'center':
-            layout = QBoxLayout(QBoxLayout.LeftToRight)
-            layout.setAlignment(Qt.AlignCenter)
-            layout.setSpacing(18)
-            box.setLayout(layout)
         else:
             layout = QHBoxLayout()
-            layout.setContentsMargins(5, 5, 5, 5)
-            layout.setSpacing(18)
-            box.setLayout(layout)
-
+        layout.setContentsMargins(5, 5, 5, 5)
+        layout.setSpacing(18)
+        box.setLayout(layout)
         return box
 
     def addToBox(self, box, widget):
         widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         box.layout().addWidget(widget)
 
-    ##############################################
-    ##############################################
-    ##############################################
-    ##############################################
-    ##############################################
-    
-    
+    def updateAxesStyle(self, ax):
+        ax.set_facecolor(self.graphColor)
+        ax.set_frame_on(True)
+        for spine in ax.spines.values():
+            spine.set_visible(True)
+            spine.set_color(self.widgetColor)
+            spine.set_linewidth(2.0)
+        ax.tick_params(axis='both', labelcolor=self.ticksColor, color=self.widgetColor, width=self.ticksWidth)
+
+    @staticmethod
+    def getWorkTime(name):
+        def decorator(func):
+            def wrapper(self, *args, **kwargs):
+                start_time = time.time()
+                result = func(self, *args, **kwargs)
+                end_time = time.time()
+                print(f"Max {name} method work time: {end_time - start_time:.4f} s")
+                return result
+            return wrapper
+        return decorator
+
+    @staticmethod
     def canvasDraw(tab):
         def decorator(func):
             def wrapper(self, *args, **kwargs):
                 result = func(self, *args, **kwargs)
-                self.tabAtr(f'{tab}Canvas').draw()  
+                canvas = getattr(self, f'{tab}Canvas', None)
+                if canvas:
+                    canvas.draw()
                 return result
             return wrapper
         return decorator
-    
-
-    def changeMode(self):
-        self.darkMode = not self.darkMode
-        
-        if self.darkMode == True:
-            self.windowColor = '#2E2E2E'   
-            self.widgetColor = '#6e6e6e'
-            self.graphColor = '#4c4c4c'
-            self.ticksColor = '#b5b5b5'
-        else:
-            self.windowColor = 'white'   
-            self.widgetColor = 'grey'
-            self.graphColor = 'white'
-            self.ticksColor = 'black'
-
 
     def saveFile(self):
         try:
             current_index = self.tabs.currentIndex()
             current_tab_name = self.tabs.tabText(current_index)
-            figure_name = f"{current_tab_name}Figure"
-            figure = getattr(self, figure_name, None)
+            figure = getattr(self, f"{current_tab_name}Figure", None)
             way = self.save_file()
-            if way != None:
+            if way:
                 figure.savefig(way, transparent=True, dpi=400)
-        except:
-            pass
-
-
-    def getWorkTime(name):
-        def decorator(func):
-            def wrapper(self, *args, **kwargs):
-                start_time = time.time() 
-
-                result = func(self, *args, **kwargs)
-
-                end_time = time.time()
-                method_time = end_time - start_time
-
-                print(f"Max {name} method work time: {method_time:.4f} s")
-
-                return result
-            return wrapper
-        return decorator
-
-
-    def load_file(self):
-        options = QFileDialog.Options()
-        fileName, _ = QFileDialog.getOpenFileName(
-            self, 
-            "Choose the file", 
-            "", 
-            "Text Files (*.txt);;All Files (*)", 
-            options=options
-        )
-
-        if fileName:
-            try:
-                x, y, v = np.loadtxt(fileName, unpack=True)
-                QMessageBox.information(self, "Sucess", "File uploaded")
-                print(x[:5], y[:5], v[:5])
-                return x, y, v
-            
-            except:
-                QMessageBox.critical(self, "Error", f"Can`t upload file")
-                return [], [], []
-        else:
-            QMessageBox.critical(self, "Error", f"Can`t find file")
-            return [], [], []
+        except: pass
 
     def get_file_way(self):
-        options = QFileDialog.Options()
-        fileName, _ = QFileDialog.getOpenFileName(
-            self, 
-            "Choose the file", 
-            "", 
-            "All Files (*)", 
-            options=options
-        )
-
-        if fileName:
-            self.fileName = fileName
-        else:
-            QMessageBox.critical(self, "Error", f"Can`t find file")
-
+        fileName, _ = QFileDialog.getOpenFileName(self, "Choose the file")
+        if fileName: self.fileName = fileName
 
     def save_file(self):
-        try:
-            options = QFileDialog.Options()
-            fileName, _ = QFileDialog.getSaveFileName(
-                self,
-                "Choose the file",
-                QDir.currentPath(),
-                "PNG Images (*.png);;All Files (*)",
-                options=options
-            )
-
-            if fileName:
-                QMessageBox.information(self, "Sucess", "file was choosen")
-                return fileName
-            else:
-                QMessageBox.critical(self, "Error", "file wasn`t choosen")
-                return None
-        except:
-            return None
+        fileName, _ = QFileDialog.getSaveFileName(self, "Save picture", "", "PNG Images (*.png)")
+        return fileName if fileName else None
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-
     window = PlotInterface()
     window.show()
-
     sys.exit(app.exec_())
-
-
