@@ -106,13 +106,13 @@ class PlotInterface(GraphObjects):
 
         # Кнопка переключения сайдбара
         self.toggle_sidebar_btn = QPushButton("☰")
-        self.toggle_sidebar_btn.setFixedSize(50, 45)
+        self.toggle_sidebar_btn.setFixedSize(50, 50)
         self.toggle_sidebar_btn.setFlat(True)
         self.toggle_sidebar_btn.setStyleSheet("""
             QPushButton {
                 font-size: 24px;
                 padding: 0px;
-                margin: 0px;
+                margin: 0px 20px 19px 0px;
                 border-radius: 0px;
                 border: none;
                 background-color: transparent;
@@ -178,6 +178,23 @@ class PlotInterface(GraphObjects):
             with open(qss_path, "r") as f:
                 QApplication.instance().setStyleSheet(f.read())
         
+        # Обновляем все открытые вкладки и графики
+        for i in range(self.tabs.count()):
+            tab_name = self.tabs.tabText(i)
+            figure = getattr(self, f"{tab_name}Figure", None)
+            canvas = getattr(self, f"{tab_name}Canvas", None)
+            
+            if figure:
+                # Обновляем фон фигуры
+                figure.patch.set_facecolor(self.windowColor)
+                # Обновляем стили всех осей в фигуре
+                for ax in figure.axes:
+                    self.updateAxesStyle(ax)
+                
+                # Перерисовываем холст
+                if canvas:
+                    canvas.draw()
+
         # Обновляем заголовок окна (Windows)
         if pywinstyles:
             try:
@@ -185,10 +202,6 @@ class PlotInterface(GraphObjects):
                 pywinstyles.apply_style(self, style)
             except Exception as e:
                 print(f"Failed to apply pywinstyles: {e}")
-
-        # Перерисовываем текущие вкладки (если нужно обновить графики сразу)
-        # В данном проекте графики обновляются при рисовании, 
-        # но переменные цветов уже изменены.
 
     def clearTabs(self):
         """Полная очистка вкладок."""
@@ -317,6 +330,9 @@ class PlotInterface(GraphObjects):
             spine.set_color(self.widgetColor)
             spine.set_linewidth(2.0)
         ax.tick_params(axis='both', labelcolor=self.ticksColor, color=self.widgetColor, width=self.ticksWidth)
+        ax.xaxis.label.set_color(self.ticksColor)
+        ax.yaxis.label.set_color(self.ticksColor)
+        ax.title.set_color(self.ticksColor)
 
     @staticmethod
     def getWorkTime(name):

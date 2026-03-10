@@ -41,7 +41,7 @@ QWidget#sideBarContainer {
 }
 
 QGroupBox {
-    border: 2px solid #6e6e6e;   
+    border: 2px solid #4E4E4E;   
     color: #b5b5b5; /* Цвет текста вкладки */               
                  
     padding: 10px; 
