@@ -59,11 +59,11 @@ class MainApp(AllExamples, AllSeismicExamples, AllThermoExamples, PlotInterface)
         
         self.clearTabs()
         
-        if selected_text == "Общие":
+        if selected_text == "General":
             self.init_all_tabs()
-        elif selected_text == "Сейсмика":
+        elif selected_text == "Seismic":
             self.init_seismic_tabs()
-        elif selected_text == "Термодинамика":
+        elif selected_text == "Thermodynamics":
             self.init_thermo_tabs()
 
 if __name__ == "__main__":

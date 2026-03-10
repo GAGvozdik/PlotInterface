@@ -54,13 +54,14 @@ class PlotInterface(GraphObjects):
         # Наполнение боковой панели
         self.sidebar_box = self.createBox(self.sidebar_layout, "NAVIGATION")
         self.sidebar_box.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.sidebar_box.layout().setSpacing(10)
 
         # Создание радиокнопок для режимов
         self.modeGroup = QButtonGroup(self)
         
-        self.radio_general = QRadioButton("Общие")
-        self.radio_seismic = QRadioButton("Сейсмика")
-        self.radio_thermo = QRadioButton("Термодинамика")
+        self.radio_general = QRadioButton("General")
+        self.radio_seismic = QRadioButton("Seismic")
+        self.radio_thermo = QRadioButton("Thermodynamics")
         
         self.radio_general.setChecked(True)
         
@@ -71,6 +72,9 @@ class PlotInterface(GraphObjects):
         self.addToBox(self.sidebar_box, self.radio_general)
         self.addToBox(self.sidebar_box, self.radio_seismic)
         self.addToBox(self.sidebar_box, self.radio_thermo)
+        
+        # Прижимаем кнопки к верху
+        self.sidebar_box.layout().addStretch(1)
 
         # Основной контент
         self.main_content_widget = QWidget(self)
