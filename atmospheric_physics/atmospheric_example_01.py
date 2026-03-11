@@ -192,54 +192,55 @@ class AtmosphericExample01:
             
             ref_p = 1000 * units.hPa
             a_iso, a_dry, a_mix, a_moist = (0.70 if active_mode == m else 0.30 for m in ['Isotherm', 'Dry adiabat', 'Saturation Mixing Ratio', 'θe'])
+            # Alpha для текста на 0.2 выше, чем у линий
+            t_iso, t_dry, t_mix, t_moist = (min(1.0, a + 0.2) for a in [a_iso, a_dry, a_mix, a_moist])
+            
+            pe = [path_effects.withStroke(linewidth=4, foreground=self.graphColor)]
             x_min, x_max = self.__ax_skew.get_xlim()
-            txt_bb = dict(facecolor=self.graphColor, edgecolor='none', pad=0.5)
-
-            # ЭТАЛОННЫЕ ЦВЕТА
-            c_dry = "orange"; c_moist = "green"; c_mix = "#90EE90"
+            c_dry, c_moist, c_mix = "orange", "green", "#90EE90"
 
             # 1. Dry (Strict 200 hPa)
             t0_dry = np.arange(-100, 200, 10) * units.degC
             dry_lines = self.__skew.plot_dry_adiabats(t0=t0_dry, alpha=a_dry, linestyle='-', linewidth=2.0)
-            dry_lines.set_color(c_dry) # ПРИНУДИТЕЛЬНО
+            dry_lines.set_color(c_dry)
             for t0 in t0_dry:
                 t = np.atleast_1d(mpcalc.dry_lapse(200 * units.hPa, t0, reference_pressure=ref_p).to('degC').m)[0]
                 if x_min + 2 <= t <= x_max - 2:
-                    t_near = np.atleast_1d(mpcalc.dry_lapse(190 * units.hPa, t0, reference_pressure=ref_p).to('degC').m)[0]
-                    p1 = self.__ax_skew.transData.transform((t, 200)); p2 = self.__ax_skew.transData.transform((t_near, 190))
+                    t_near = np.atleast_1d(mpcalc.dry_lapse(199 * units.hPa, t0, reference_pressure=ref_p).to('degC').m)[0]
+                    p1 = self.__ax_skew.transData.transform((t, 200)); p2 = self.__ax_skew.transData.transform((t_near, 199))
                     angle = np.degrees(np.arctan2(p2[1]-p1[1], p2[0]-p1[0]))
                     if angle > 90: angle -= 180
                     elif angle < -90: angle += 180
-                    self.__ax_skew.text(t, 200, f'{t0.m:.0f}', color=c_dry, fontsize=14, fontweight='bold', ha='center', va='center', rotation=angle, clip_on=True, bbox=txt_bb)
+                    self.__ax_skew.text(t, 200, f'{t0.m:.0f}', color=c_dry, fontsize=14, fontweight='bold', ha='center', va='center', rotation=angle, clip_on=True, path_effects=pe, alpha=t_dry)
 
             # 2. Moist (Strict 300 hPa)
             t0_moist = np.arange(-100, 100, 5) * units.degC
             moist_lines = self.__skew.plot_moist_adiabats(t0=t0_moist, alpha=a_moist, linestyle='-', linewidth=2.0)
-            moist_lines.set_color(c_moist) # ПРИНУДИТЕЛЬНО
+            moist_lines.set_color(c_moist)
             for t0 in t0_moist:
                 t = np.atleast_1d(mpcalc.moist_lapse(300 * units.hPa, t0, reference_pressure=ref_p).to('degC').m)[0]
                 if x_min + 2 <= t <= x_max - 2:
-                    t_near = np.atleast_1d(mpcalc.moist_lapse(290 * units.hPa, t0, reference_pressure=ref_p).to('degC').m)[0]
-                    p1 = self.__ax_skew.transData.transform((t, 300)); p2 = self.__ax_skew.transData.transform((t_near, 290))
+                    t_near = np.atleast_1d(mpcalc.moist_lapse(299 * units.hPa, t0, reference_pressure=ref_p).to('degC').m)[0]
+                    p1 = self.__ax_skew.transData.transform((t, 300)); p2 = self.__ax_skew.transData.transform((t_near, 299))
                     angle = np.degrees(np.arctan2(p2[1]-p1[1], p2[0]-p1[0]))
                     if angle > 90: angle -= 180
                     elif angle < -90: angle += 180
-                    self.__ax_skew.text(t, 300, f'{t0.m:.0f}', color=c_moist, fontsize=14, fontweight='bold', ha='center', va='center', rotation=angle, clip_on=True, bbox=txt_bb)
+                    self.__ax_skew.text(t, 300, f'{t0.m:.0f}', color=c_moist, fontsize=14, fontweight='bold', ha='center', va='center', rotation=angle, clip_on=True, path_effects=pe, alpha=t_moist)
 
             # 3. Mix (Strict 500 hPa)
             w_mixing = np.array([0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 2, 5, 10, 20, 30, 50]) * units('g/kg')
             mix_lines = self.__skew.plot_mixing_lines(pressure=np.linspace(1050, 100, 65) * units.hPa, mixing_ratio=w_mixing, alpha=a_mix, linestyle='--', linewidth=2.0)
-            if mix_lines: mix_lines.set_color(c_mix) # ПРИНУДИТЕЛЬНО
+            if mix_lines: mix_lines.set_color(c_mix)
             for w in w_mixing:
                 t = np.atleast_1d(mpcalc.dewpoint(mpcalc.vapor_pressure(500 * units.hPa, w)).to('degC').m)[0]
                 if x_min + 2 <= t <= x_max - 2:
-                    t_near = np.atleast_1d(mpcalc.dewpoint(mpcalc.vapor_pressure(490 * units.hPa, w)).to('degC').m)[0]
-                    p1 = self.__ax_skew.transData.transform((t, 500)); p2 = self.__ax_skew.transData.transform((t_near, 490))
+                    t_near = np.atleast_1d(mpcalc.dewpoint(mpcalc.vapor_pressure(499 * units.hPa, w)).to('degC').m)[0]
+                    p1 = self.__ax_skew.transData.transform((t, 500)); p2 = self.__ax_skew.transData.transform((t_near, 499))
                     angle = np.degrees(np.arctan2(p2[1]-p1[1], p2[0]-p1[0]))
                     if angle > 90: angle -= 180
                     elif angle < -90: angle += 180
                     txt = f'{w.m:.0g}' if w.m >= 0.01 else f'{w.m:.4f}'
-                    self.__ax_skew.text(t, 500, txt, color=c_mix, fontsize=14, fontweight='bold', ha='center', va='center', rotation=angle, clip_on=True, bbox=txt_bb)
+                    self.__ax_skew.text(t, 500, txt, color=c_mix, fontsize=14, fontweight='bold', ha='center', va='center', rotation=angle, clip_on=True, path_effects=pe, alpha=t_mix)
             
             self.__ax_skew.grid(True, axis='x', color='red', linewidth=1.5, alpha=a_iso)
             self.__ax_skew.grid(True, axis='y', color='black', linewidth=1.5, alpha=0.3)
@@ -251,14 +252,13 @@ class AtmosphericExample01:
             self.__analytical_line_objs = []
 
         ref_p = 1000 * units.hPa
-        c_dry, c_moist, c_mix = "orange", "green", "#90EE90"
         for i, data in enumerate(self.__lines_data):
             p_min, p_max = data['p_range']; p_line = np.linspace(p_max, p_min, 100) * units.hPa
             mode, val = data['mode'], data['val']
             try:
                 if mode == 'Isotherm': t_line = np.full_like(p_line.m, val) * units.degC; color = 'red'
-                elif mode == 'Dry adiabat': t_line = mpcalc.dry_lapse(p_line, (val + 273.15) * units.kelvin, reference_pressure=ref_p); color = c_dry
-                elif mode == 'Saturation Mixing Ratio': t_line = mpcalc.dewpoint(mpcalc.vapor_pressure(p_line, val * units('g/kg'))); color = c_mix
-                elif mode == 'θe': t_line = mpcalc.moist_lapse(p_line, (val + 273.15) * units.kelvin, reference_pressure=ref_p); color = c_moist
+                elif mode == 'Dry adiabat': t_line = mpcalc.dry_lapse(p_line, (val + 273.15) * units.kelvin, reference_pressure=ref_p); color = "orange"
+                elif mode == 'Saturation Mixing Ratio': t_line = mpcalc.dewpoint(mpcalc.vapor_pressure(p_line, val * units('g/kg'))); color = "#90EE90"
+                elif mode == 'θe': t_line = mpcalc.moist_lapse(p_line, (val + 273.15) * units.kelvin, reference_pressure=ref_p); color = "green"
                 lines = self.__skew.plot(p_line, t_line, color, linewidth=4.0); self.__analytical_line_objs.append(lines[0])
             except: continue
