@@ -130,7 +130,8 @@ class AtmosphericExample02:
         moist.set_linewidth(2.5)
         
         w_mixing = np.array([0.1, 0.2, 0.5, 1, 2, 3, 5, 7, 10, 15, 20, 25, 30, 40, 50]) * units('g/kg')
-        mixing = self.__skew.plot_mixing_lines(mixing_ratio=w_mixing, alpha=0.45)
+        p_all = np.linspace(1050, 100, 65) * units.hPa
+        mixing = self.__skew.plot_mixing_lines(pressure=p_all, mixing_ratio=w_mixing, alpha=0.45)
         if mixing:
             mixing.set_color('#90EE90') # Salatoviy
             mixing.set_linewidth(2.5)
