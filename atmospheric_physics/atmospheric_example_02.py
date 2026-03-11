@@ -144,7 +144,7 @@ class AtmosphericExample02:
                         if angle > 90: angle -= 180
                         elif angle < -90: angle += 180
                         
-                        self.__ax_skew.text(t, p_val, f'{t0.m:.0f}', color='orange', fontsize=7,
+                        self.__ax_skew.text(t, p_val, f'{t0.m:.0f}', color='orange', fontsize=14,
                                             ha='center', va='center', rotation=angle, clip_on=True,
                                             bbox=dict(facecolor=self.graphColor, edgecolor='none', alpha=1.0, pad=0.2))
                         break
@@ -172,7 +172,7 @@ class AtmosphericExample02:
                         if angle > 90: angle -= 180
                         elif angle < -90: angle += 180
                         
-                        self.__ax_skew.text(t, p_val, f'{t0.m:.0f}', color='green', fontsize=7,
+                        self.__ax_skew.text(t, p_val, f'{t0.m:.0f}', color='green', fontsize=14,
                                             ha='center', va='center', rotation=angle, clip_on=True,
                                             bbox=dict(facecolor=self.graphColor, edgecolor='none', alpha=1.0, pad=0.2))
                         break
@@ -205,7 +205,7 @@ class AtmosphericExample02:
                         elif angle < -90: angle += 180
                         
                         label_text = f'{w.m:.0g}' if w.m >= 0.01 else f'{w.m:.4f}'
-                        self.__ax_skew.text(t, p_val, label_text, color='#90EE90', fontsize=7,
+                        self.__ax_skew.text(t, p_val, label_text, color='#90EE90', fontsize=14,
                                             ha='center', va='center', rotation=angle, clip_on=True,
                                             bbox=dict(facecolor=self.graphColor, edgecolor='none', alpha=1.0, pad=0.2))
                         break
