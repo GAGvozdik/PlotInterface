@@ -33,9 +33,9 @@ class AtmosphericExample01:
             name='Isolines'
         )
         
-        # 2. Одиночный слайдер (начальный диапазон для Isotherm)
+        # 2. Одиночный слайдер
         self.createSlider(
-            -80, 50, init=20,
+            -200, 1500, init=200, 
             func=self.__on_param_changed,
             name='Surface Temp', 
             tab=self.__tab2,
@@ -74,12 +74,11 @@ class AtmosphericExample01:
         btn_layout.addWidget(self.__btn_add)
         btn_layout.addWidget(self.__btn_del)
         self.__manager_box.layout().addLayout(btn_layout)
-        
         self.addToBox(s_box, self.__manager_box)
-        
-        # Кнопки Save/Load вниз
-        save_btn = None
-        load_btn = None
+
+        # 5. Кнопки Save/Load вниз
+        save_btn, load_btn = None, None
+
         for i in range(s_box.layout().count()):
             item = s_box.layout().itemAt(i)
             if item and item.widget():
@@ -88,11 +87,8 @@ class AtmosphericExample01:
                 if isinstance(w, QPushButton) and w.text() == "Load file": load_btn = w
         
         if save_btn and load_btn:
-            s_box.layout().removeWidget(save_btn)
-            s_box.layout().removeWidget(load_btn)
-            s_box.layout().addStretch(1)
-            s_box.layout().addWidget(save_btn)
-            s_box.layout().addWidget(load_btn)
+            s_box.layout().removeWidget(save_btn); s_box.layout().removeWidget(load_btn)
+            s_box.layout().addStretch(1); s_box.layout().addWidget(save_btn); s_box.layout().addWidget(load_btn)
         
         self.__add_line()
         self.__draw_skewt()
@@ -107,16 +103,13 @@ class AtmosphericExample01:
     def __delete_line(self):
         row = self.__list_widget.currentRow()
         if row >= 0 and len(self.__lines_data) > 1:
-            self.__lines_data.pop(row)
-            self.__list_widget.takeItem(row)
-            self.__list_widget.setCurrentRow(max(0, row - 1))
-            self.__draw_skewt()
+            self.__lines_data.pop(row); self.__list_widget.takeItem(row)
+            self.__list_widget.setCurrentRow(max(0, row - 1)); self.__draw_skewt()
 
     def __on_line_selected(self, index):
         if index < 0 or index >= len(self.__lines_data): return
         self.__active_line_index = index
         data = self.__lines_data[index]
-        
         group = getattr(self, "Isolines Group", None)
         if group:
             group.blockSignals(True)
@@ -126,33 +119,26 @@ class AtmosphericExample01:
         
         slider = getattr(self, "Surface Temp slider", None)
         if slider:
-            slider.blockSignals(True)
-            self.__update_slider_limits()
+            slider.blockSignals(True); self.__update_slider_limits()
             if data['mode'] == 'Saturation Mixing Ratio':
                 log_val = (np.log10(data['val']) - (-4)) / (np.log10(50) - (-4)) * 10000.0
                 slider.setValue(int(log_val))
-            elif data['mode'] in ['Dry adiabat', 'θe']:
-                slider.setValue(int(data['val'] * 10))
-            else:
-                slider.setValue(int(data['val']))
+            elif data['mode'] in ['Dry adiabat', 'θe']: slider.setValue(int(data['val'] * 10))
+            else: slider.setValue(int(data['val']))
             slider.blockSignals(False)
             
         r_slider = getattr(self, "Pressure Range slider", None)
         if r_slider:
             r_slider.blockSignals(True); r_slider.setValue(data['p_range']); r_slider.blockSignals(False)
-            
         self.__draw_skewt()
 
     def __on_mode_changed(self, button):
         if self.__active_line_index < 0: return
-        mode = button.text()
-        self.__lines_data[self.__active_line_index]['mode'] = mode
+        mode = button.text(); self.__lines_data[self.__active_line_index]['mode'] = mode
         old_name = self.__list_widget.item(self.__active_line_index).text()
-        prefix = old_name.split(']')[0] + ']'
-        new_name = f"{prefix} {mode}"
+        prefix = old_name.split(']')[0] + ']'; new_name = f"{prefix} {mode}"
         self.__list_widget.item(self.__active_line_index).setText(new_name)
         self.__update_slider_limits()
-        
         slider = getattr(self, "Surface Temp slider", None)
         if slider: self.__on_param_changed(slider.value())
         self.__draw_skewt()
@@ -160,12 +146,9 @@ class AtmosphericExample01:
     def __on_param_changed(self, val):
         if self.__active_line_index < 0: return
         mode = self.__lines_data[self.__active_line_index]['mode']
-        if mode == 'Saturation Mixing Ratio':
-            actual_val = 10**(-4 + (val/10000.0) * (np.log10(50) - (-4)))
-        elif mode in ['Dry adiabat', 'θe']:
-            actual_val = val / 10.0
-        else:
-            actual_val = float(val)
+        if mode == 'Saturation Mixing Ratio': actual_val = 10**(-4 + (val/10000.0) * (np.log10(50) - (-4)))
+        elif mode in ['Dry adiabat', 'θe']: actual_val = val / 10.0
+        else: actual_val = float(val)
         self.__lines_data[self.__active_line_index]['val'] = actual_val
         label = getattr(self, "Surface Temp Slider Label", None)
         if label:
@@ -183,8 +166,7 @@ class AtmosphericExample01:
 
     def __update_slider_limits(self):
         if self.__active_line_index < 0: return
-        slider = getattr(self, "Surface Temp slider", None)
-        box = getattr(self, "Surface Temp Slider Box", None)
+        slider = getattr(self, "Surface Temp slider", None); box = getattr(self, "Surface Temp Slider Box", None)
         mode = self.__lines_data[self.__active_line_index]['mode']
         if slider:
             if box: box.setTitle(mode)
@@ -203,44 +185,61 @@ class AtmosphericExample01:
         current_state = (active_mode, self.darkMode)
         
         if not hasattr(self, '_bg_state') or self._bg_state != current_state:
-            figure.clear()
-            self._bg_state = current_state
-            self.__analytical_line_objs = [] 
-            self.__skew = SkewT(figure, rotation=45)
-            self.__ax_skew = self.__skew.ax
+            figure.clear(); self._bg_state = current_state; self.__analytical_line_objs = [] 
+            self.__skew = SkewT(figure, rotation=45); self.__ax_skew = self.__skew.ax
             self.updateAxesStyle(self.__ax_skew)
             self.__ax_skew.set_ylim(1050, 100); self.__ax_skew.set_xlim(-40, 50); self.__ax_skew.tick_params(axis='both', labelsize=15)
             
             ref_p = 1000 * units.hPa
             a_iso, a_dry, a_mix, a_moist = (0.70 if active_mode == m else 0.30 for m in ['Isotherm', 'Dry adiabat', 'Saturation Mixing Ratio', 'θe'])
-            pe = [path_effects.withStroke(linewidth=3, foreground=self.graphColor)]
+            x_min, x_max = self.__ax_skew.get_xlim()
+            txt_bb = dict(facecolor=self.graphColor, edgecolor='none', pad=0.5)
 
+            # ЭТАЛОННЫЕ ЦВЕТА
+            c_dry = "orange"; c_moist = "green"; c_mix = "#90EE90"
+
+            # 1. Dry (Strict 200 hPa)
             t0_dry = np.arange(-100, 200, 10) * units.degC
-            dry = self.__skew.plot_dry_adiabats(t0=t0_dry, alpha=a_dry, linestyle='-')
-            dry.set_color('orange'); dry.set_linewidth(2.0)
+            dry_lines = self.__skew.plot_dry_adiabats(t0=t0_dry, alpha=a_dry, linestyle='-', linewidth=2.0)
+            dry_lines.set_color(c_dry) # ПРИНУДИТЕЛЬНО
             for t0 in t0_dry:
-                try:
-                    t = mpcalc.dry_lapse(250 * units.hPa, t0, reference_pressure=ref_p).to('degC').m
-                    if -44 <= t <= 46: self.__ax_skew.text(t, 250, f'{t0.m:.0f}', color='orange', fontsize=14, ha='center', va='center', rotation=45, clip_on=True, path_effects=pe)
-                except: continue
+                t = np.atleast_1d(mpcalc.dry_lapse(200 * units.hPa, t0, reference_pressure=ref_p).to('degC').m)[0]
+                if x_min + 2 <= t <= x_max - 2:
+                    t_near = np.atleast_1d(mpcalc.dry_lapse(190 * units.hPa, t0, reference_pressure=ref_p).to('degC').m)[0]
+                    p1 = self.__ax_skew.transData.transform((t, 200)); p2 = self.__ax_skew.transData.transform((t_near, 190))
+                    angle = np.degrees(np.arctan2(p2[1]-p1[1], p2[0]-p1[0]))
+                    if angle > 90: angle -= 180
+                    elif angle < -90: angle += 180
+                    self.__ax_skew.text(t, 200, f'{t0.m:.0f}', color=c_dry, fontsize=14, fontweight='bold', ha='center', va='center', rotation=angle, clip_on=True, bbox=txt_bb)
 
+            # 2. Moist (Strict 300 hPa)
             t0_moist = np.arange(-100, 100, 5) * units.degC
-            moist = self.__skew.plot_moist_adiabats(t0=t0_moist, alpha=a_moist, linestyle='-')
-            moist.set_color('green'); moist.set_linewidth(2.0)
+            moist_lines = self.__skew.plot_moist_adiabats(t0=t0_moist, alpha=a_moist, linestyle='-', linewidth=2.0)
+            moist_lines.set_color(c_moist) # ПРИНУДИТЕЛЬНО
             for t0 in t0_moist:
-                try:
-                    t = mpcalc.moist_lapse(400 * units.hPa, t0, reference_pressure=ref_p).to('degC').m
-                    if -44 <= t <= 46: self.__ax_skew.text(t, 400, f'{t0.m:.0f}', color='green', fontsize=14, ha='center', va='center', rotation=45, clip_on=True, path_effects=pe)
-                except: continue
+                t = np.atleast_1d(mpcalc.moist_lapse(300 * units.hPa, t0, reference_pressure=ref_p).to('degC').m)[0]
+                if x_min + 2 <= t <= x_max - 2:
+                    t_near = np.atleast_1d(mpcalc.moist_lapse(290 * units.hPa, t0, reference_pressure=ref_p).to('degC').m)[0]
+                    p1 = self.__ax_skew.transData.transform((t, 300)); p2 = self.__ax_skew.transData.transform((t_near, 290))
+                    angle = np.degrees(np.arctan2(p2[1]-p1[1], p2[0]-p1[0]))
+                    if angle > 90: angle -= 180
+                    elif angle < -90: angle += 180
+                    self.__ax_skew.text(t, 300, f'{t0.m:.0f}', color=c_moist, fontsize=14, fontweight='bold', ha='center', va='center', rotation=angle, clip_on=True, bbox=txt_bb)
 
+            # 3. Mix (Strict 500 hPa)
             w_mixing = np.array([0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 2, 5, 10, 20, 30, 50]) * units('g/kg')
-            mixing = self.__skew.plot_mixing_lines(pressure=np.linspace(1050, 100, 65) * units.hPa, mixing_ratio=w_mixing, alpha=a_mix, linestyle='--')
-            if mixing: mixing.set_color('#90EE90'); mixing.set_linewidth(2.0)
+            mix_lines = self.__skew.plot_mixing_lines(pressure=np.linspace(1050, 100, 65) * units.hPa, mixing_ratio=w_mixing, alpha=a_mix, linestyle='--', linewidth=2.0)
+            if mix_lines: mix_lines.set_color(c_mix) # ПРИНУДИТЕЛЬНО
             for w in w_mixing:
-                try:
-                    t = mpcalc.dewpoint(mpcalc.vapor_pressure(600 * units.hPa, w)).to('degC').m
-                    if -44 <= t <= 46: self.__ax_skew.text(t, 600, f'{w.m:.0g}', color='#90EE90', fontsize=14, ha='center', va='center', rotation=60, clip_on=True, path_effects=pe)
-                except: continue
+                t = np.atleast_1d(mpcalc.dewpoint(mpcalc.vapor_pressure(500 * units.hPa, w)).to('degC').m)[0]
+                if x_min + 2 <= t <= x_max - 2:
+                    t_near = np.atleast_1d(mpcalc.dewpoint(mpcalc.vapor_pressure(490 * units.hPa, w)).to('degC').m)[0]
+                    p1 = self.__ax_skew.transData.transform((t, 500)); p2 = self.__ax_skew.transData.transform((t_near, 490))
+                    angle = np.degrees(np.arctan2(p2[1]-p1[1], p2[0]-p1[0]))
+                    if angle > 90: angle -= 180
+                    elif angle < -90: angle += 180
+                    txt = f'{w.m:.0g}' if w.m >= 0.01 else f'{w.m:.4f}'
+                    self.__ax_skew.text(t, 500, txt, color=c_mix, fontsize=14, fontweight='bold', ha='center', va='center', rotation=angle, clip_on=True, bbox=txt_bb)
             
             self.__ax_skew.grid(True, axis='x', color='red', linewidth=1.5, alpha=a_iso)
             self.__ax_skew.grid(True, axis='y', color='black', linewidth=1.5, alpha=0.3)
@@ -252,15 +251,14 @@ class AtmosphericExample01:
             self.__analytical_line_objs = []
 
         ref_p = 1000 * units.hPa
+        c_dry, c_moist, c_mix = "orange", "green", "#90EE90"
         for i, data in enumerate(self.__lines_data):
-            p_min, p_max = data['p_range']
-            p_line = np.linspace(p_max, p_min, 100) * units.hPa
+            p_min, p_max = data['p_range']; p_line = np.linspace(p_max, p_min, 100) * units.hPa
             mode, val = data['mode'], data['val']
             try:
                 if mode == 'Isotherm': t_line = np.full_like(p_line.m, val) * units.degC; color = 'red'
-                elif mode == 'Dry adiabat': t_line = mpcalc.dry_lapse(p_line, (val + 273.15) * units.kelvin, reference_pressure=ref_p); color = 'orange'
-                elif mode == 'Saturation Mixing Ratio': t_line = mpcalc.dewpoint(mpcalc.vapor_pressure(p_line, val * units('g/kg'))); color = '#90EE90'
-                elif mode == 'θe': t_line = mpcalc.moist_lapse(p_line, (val + 273.15) * units.kelvin, reference_pressure=ref_p); color = 'green'
-                lines = self.__skew.plot(p_line, t_line, color, linewidth=4.0)
-                self.__analytical_line_objs.append(lines[0])
+                elif mode == 'Dry adiabat': t_line = mpcalc.dry_lapse(p_line, (val + 273.15) * units.kelvin, reference_pressure=ref_p); color = c_dry
+                elif mode == 'Saturation Mixing Ratio': t_line = mpcalc.dewpoint(mpcalc.vapor_pressure(p_line, val * units('g/kg'))); color = c_mix
+                elif mode == 'θe': t_line = mpcalc.moist_lapse(p_line, (val + 273.15) * units.kelvin, reference_pressure=ref_p); color = c_moist
+                lines = self.__skew.plot(p_line, t_line, color, linewidth=4.0); self.__analytical_line_objs.append(lines[0])
             except: continue
