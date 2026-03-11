@@ -119,6 +119,8 @@ class AtmosphericExample02:
         # Установка фиксированных границ
         self.__ax_skew.set_ylim(1050, 100)
         self.__ax_skew.set_xlim(-40, 50)
+        
+        ref_p = 1000 * units.hPa
 
         # 1. Сухие адиабаты (Dry Adiabats) - Оранжевые
         t0_dry = np.arange(-100, 200, 10) * units.degC
@@ -127,17 +129,21 @@ class AtmosphericExample02:
         dry.set_linewidth(2.0)
         
         # Подписи для сухих адиабат (Приоритет 250 hPa)
-        p_levels = [250, 300, 400, 500, 600, 700, 850]
+        p_levels_dry = [250, 300, 400, 500, 600, 700, 850]
         for t0 in t0_dry[::2]:
-            for p_val in p_levels:
+            for p_val in p_levels_dry:
                 try:
-                    p_label = np.atleast_1d(p_val) * units.hPa
-                    t = np.atleast_1d(mpcalc.dry_lapse(p_label, t0).m)[0]
-                    if -42 <= t <= 52:
-                        t_near = np.atleast_1d(mpcalc.dry_lapse(p_label - 10 * units.hPa, t0).m)[0]
+                    p_label = p_val * units.hPa
+                    t = mpcalc.dry_lapse(p_label, t0, reference_pressure=ref_p).to('degC').m
+                    if -44 <= t <= 46:
+                        t_near = mpcalc.dry_lapse(p_label - 10 * units.hPa, t0, reference_pressure=ref_p).to('degC').m
                         p1 = self.__ax_skew.transData.transform((t, p_val))
                         p2 = self.__ax_skew.transData.transform((t_near, p_val - 10))
                         angle = np.degrees(np.arctan2(p2[1]-p1[1], p2[0]-p1[0]))
+                        # Нормализация угла для читаемости (всегда головой вверх)
+                        if angle > 90: angle -= 180
+                        elif angle < -90: angle += 180
+                        
                         self.__ax_skew.text(t, p_val, f'{t0.m:.0f}', color='orange', fontsize=7,
                                             ha='center', va='center', rotation=angle, clip_on=True,
                                             bbox=dict(facecolor=self.graphColor, edgecolor='none', alpha=1.0, pad=0.2))
@@ -155,13 +161,17 @@ class AtmosphericExample02:
         for t0 in t0_moist[::4]:
             for p_val in p_levels_moist:
                 try:
-                    p_label = np.atleast_1d(p_val) * units.hPa
-                    t = np.atleast_1d(mpcalc.moist_lapse(p_label, t0).m)[0]
-                    if -42 <= t <= 52:
-                        t_near = np.atleast_1d(mpcalc.moist_lapse(p_label - 10 * units.hPa, t0).m)[0]
+                    p_label = p_val * units.hPa
+                    t = mpcalc.moist_lapse(p_label, t0, reference_pressure=ref_p).to('degC').m
+                    if -44 <= t <= 46:
+                        t_near = mpcalc.moist_lapse(p_label - 10 * units.hPa, t0, reference_pressure=ref_p).to('degC').m
                         p1 = self.__ax_skew.transData.transform((t, p_val))
                         p2 = self.__ax_skew.transData.transform((t_near, p_val - 10))
                         angle = np.degrees(np.arctan2(p2[1]-p1[1], p2[0]-p1[0]))
+                        # Нормализация угла
+                        if angle > 90: angle -= 180
+                        elif angle < -90: angle += 180
+                        
                         self.__ax_skew.text(t, p_val, f'{t0.m:.0f}', color='green', fontsize=7,
                                             ha='center', va='center', rotation=angle, clip_on=True,
                                             bbox=dict(facecolor=self.graphColor, edgecolor='none', alpha=1.0, pad=0.2))
@@ -181,15 +191,18 @@ class AtmosphericExample02:
         for w in w_mixing:
             for p_val in p_levels_mix:
                 try:
-                    p_label = np.atleast_1d(p_val) * units.hPa
+                    p_label = p_val * units.hPa
                     v_p = mpcalc.vapor_pressure(p_label, w)
-                    t = np.atleast_1d(mpcalc.dewpoint(v_p).m)[0]
-                    if -42 <= t <= 52:
+                    t = mpcalc.dewpoint(v_p).to('degC').m
+                    if -44 <= t <= 46:
                         v_p_near = mpcalc.vapor_pressure(p_label - 10 * units.hPa, w)
-                        t_near = np.atleast_1d(mpcalc.dewpoint(v_p_near).m)[0]
+                        t_near = mpcalc.dewpoint(v_p_near).to('degC').m
                         p1 = self.__ax_skew.transData.transform((t, p_val))
                         p2 = self.__ax_skew.transData.transform((t_near, p_val - 10))
                         angle = np.degrees(np.arctan2(p2[1]-p1[1], p2[0]-p1[0]))
+                        # Нормализация угла
+                        if angle > 90: angle -= 180
+                        elif angle < -90: angle += 180
                         
                         label_text = f'{w.m:.0g}' if w.m >= 0.01 else f'{w.m:.4f}'
                         self.__ax_skew.text(t, p_val, label_text, color='#90EE90', fontsize=7,
