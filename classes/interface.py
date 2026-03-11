@@ -290,8 +290,24 @@ class PlotInterface(GraphObjects):
         slider = QRangeSlider(Qt.Horizontal)
         slider.setMinimum(min)
         slider.setMaximum(max)
+        
+        # Гарантируем кортеж для двух ползунков
+        if isinstance(init, (int, float)):
+            init = (min, int(init))
         slider.setValue(init)
+        
         slider.setFixedHeight(40)
+        # Сброс стилей, чтобы избежать скрытия ползунков глобальными QSS
+        slider.setStyleSheet("QRangeSlider { background: transparent; }")
+        
+        print(f"DEBUG: Created RangeSlider '{name}' -> {type(slider)} with value {slider.value()}")
+        
+        # Улучшенная визуализация для superqt
+        try:
+            slider.setHandleLabelVisible(True)
+            slider.setEdgeLabelVisible(False)
+        except AttributeError:
+            pass
 
         if func != 'none':
             slider.valueChanged.connect(func)

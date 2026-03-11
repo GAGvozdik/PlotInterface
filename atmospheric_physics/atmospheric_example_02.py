@@ -28,10 +28,10 @@ class AtmosphericExample02:
             label=True
         )
         
-        # Range Slider для давления (Заглушка)
+        # Range Slider для давления
         self.createRangeSlider(
-            100, 1050, init=self.__pressure_range2,
-            func=self.__stub_func,
+            100, 1050, init=(200, 800),
+            func='none',
             name='Pressure Range 2',
             tab=self.__tab2,
             label=True
@@ -62,7 +62,7 @@ class AtmosphericExample02:
         self.__ax_skew = self.__skew.ax
         self.updateAxesStyle(self.__ax_skew)
         
-        # Установка границ ДО отрисовки изолиний важна для MetPy
+        # Установка фиксированных границ
         self.__ax_skew.set_ylim(1050, 100)
         self.__ax_skew.set_xlim(-40, 50)
 
@@ -73,7 +73,7 @@ class AtmosphericExample02:
         
         # Тестовый профиль
         p = np.linspace(1000, 100, 50) * units.hPa
-        t = (20 - 0.0065 * (1000 - p.m)) * units.degC
+        t = (self.__surface_temp2 - 0.0065 * (1000 - p.m)) * units.degC
         self.__skew.plot(p, t, 'r', linewidth=2)
 
         self.__ax_skew.set_xlabel('Temperature (°C)')
