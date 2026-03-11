@@ -49,25 +49,31 @@ class MainApp(AllExamples, AllSeismicExamples, AllThermoExamples, AllAtmospheric
         # 4. Загрузка начального режима
         self.change_mode()
 
-    def change_mode(self):
+    def change_mode(self, button=None):
         """Переключение набора вкладок через методы унаследованных миксинов."""
-        checked_button = self.modeGroup.checkedButton()
-        if not checked_button:
-            return
+        self.modeGroup.blockSignals(True)
+        try:
+            checked_button = self.modeGroup.checkedButton()
+            if not checked_button:
+                return
+                
+            selected_text = checked_button.text()
+            print(f"Switching to: {selected_text}")
             
-        selected_text = checked_button.text()
-        print(f"Switching to: {selected_text}")
-        
-        self.clearTabs()
-        
-        if selected_text == "General":
-            self.init_all_tabs()
-        elif selected_text == "Seismic":
-            self.init_seismic_tabs()
-        elif selected_text == "Thermodynamics":
-            self.init_thermo_tabs()
-        elif selected_text == "Atmospheric Physics":
-            self.init_atmospheric_tabs()
+            self.clearTabs()
+            
+            if selected_text == "Geostatistics":
+                self.init_all_tabs()
+            elif selected_text == "Seismic":
+                self.init_seismic_tabs()
+            elif selected_text == "Thermodynamics":
+                self.init_thermo_tabs()
+            elif selected_text == "Atmospheric Physics":
+                self.init_atmospheric_tabs()
+        except Exception as e:
+            print(f"Error during mode switch: {e}")
+        finally:
+            self.modeGroup.blockSignals(False)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

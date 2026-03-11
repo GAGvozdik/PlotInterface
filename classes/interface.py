@@ -59,7 +59,7 @@ class PlotInterface(GraphObjects):
         # Создание радиокнопок для режимов
         self.modeGroup = QButtonGroup(self)
         
-        self.radio_general = QRadioButton("General")
+        self.radio_general = QRadioButton("Geostatistics")
         self.radio_seismic = QRadioButton("Seismic")
         self.radio_thermo = QRadioButton("Thermodynamics")
         self.radio_atmospheric = QRadioButton("Atmospheric Physics")
@@ -207,9 +207,13 @@ class PlotInterface(GraphObjects):
                 print(f"Failed to apply pywinstyles: {e}")
 
     def clearTabs(self):
-        """Полная очистка вкладок."""
+        """Полная очистка вкладок с удалением виджетов."""
         while self.tabs.count() > 0:
+            widget = self.tabs.widget(0)
             self.tabs.removeTab(0)
+            if widget:
+                widget.setParent(None)
+                widget.deleteLater()
             
     def createTab(self, name):
         tab = QWidget()
@@ -274,6 +278,7 @@ class PlotInterface(GraphObjects):
             self.addToBox(sliderBox, label_widget)
 
         setattr(self, f"{name} slider", slider)
+        setattr(self, f"{name} Slider Box", sliderBox)
         self.addToBox(self.tabAtr(f'{tab.objectName()}SliderBox'), sliderBox)
         return sliderBox
 
