@@ -117,10 +117,22 @@ class AtmosphericExample02:
         self.__ax_skew.set_ylim(1050, 100)
         self.__ax_skew.set_xlim(-40, 50)
 
-        # Фоновые изолинии (согласно запросу)
-        self.__skew.plot_dry_adiabats(color='orange', linewidth=1.5, alpha=0.3)
-        self.__skew.plot_moist_adiabats(color='blue', linewidth=1.5, alpha=0.3)
-        self.__skew.plot_mixing_lines(color='#90EE90', linewidth=1.5, alpha=0.3)
+        # Фоновые изолинии (согласно запросу, принудительная стилизация)
+        dry = self.__skew.plot_dry_adiabats(alpha=0.3)
+        dry.set_color('orange')
+        dry.set_linewidth(1.5)
+        
+        moist = self.__skew.plot_moist_adiabats(alpha=0.3)
+        moist.set_color('green')
+        moist.set_linewidth(1.5)
+        
+        mixing = self.__skew.plot_mixing_lines(alpha=0.3)
+        mixing.set_color('#90EE90') # Salatoviy
+        mixing.set_linewidth(1.5)
+        
+        isotherms = self.__skew.plot_isotherms(alpha=0.3)
+        isotherms.set_color('red')
+        isotherms.set_linewidth(1.5)
         
         # Изобары (горизонтальные линии)
         self.__ax_skew.grid(True, axis='y', color='black', linewidth=1.5, alpha=0.3)
