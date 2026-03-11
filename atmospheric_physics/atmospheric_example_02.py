@@ -60,7 +60,10 @@ class AtmosphericExample02:
         self.__current_param_val2 = float(val)
         label = getattr(self, "Surface Temp 2 Slider Label", None)
         if label:
-            label.setText(str(val))
+            if self.__current_mode2 == 'Saturation Mixing Ratio':
+                label.setText(f"{val/10.0:.1f} g/kg")
+            else:
+                label.setText(str(val))
         self.__draw_skewt()
 
     def __on_pressure_changed(self, val):
@@ -85,7 +88,7 @@ class AtmosphericExample02:
         limits = {
             'Isotherm': (-80, 50),
             'Potential Temperature': (-20, 150),
-            'Saturation Mixing Ratio': (1, 50), # g/kg, мин 1 для избежания ошибок
+            'Saturation Mixing Ratio': (1, 500), # 0.1 - 50.0 g/kg
             'Equivalent Potential Temperature': (-20, 150)
         }
         
@@ -120,27 +123,27 @@ class AtmosphericExample02:
         # Фоновые изолинии (согласно запросу, принудительная стилизация)
         # Расширяем t0, чтобы линии заполнили весь график (особенно верхний правый угол)
         t0_dry = np.arange(-100, 200, 10) * units.degC
-        dry = self.__skew.plot_dry_adiabats(t0=t0_dry, alpha=0.45)
+        dry = self.__skew.plot_dry_adiabats(t0=t0_dry, alpha=0.45, linestyle='-')
         dry.set_color('orange')
-        dry.set_linewidth(2.5)
+        dry.set_linewidth(2.0)
         
         t0_moist = np.arange(-100, 100, 5) * units.degC
-        moist = self.__skew.plot_moist_adiabats(t0=t0_moist, alpha=0.45)
+        moist = self.__skew.plot_moist_adiabats(t0=t0_moist, alpha=0.45, linestyle='-')
         moist.set_color('green')
-        moist.set_linewidth(2.5)
+        moist.set_linewidth(2.0)
         
         w_mixing = np.array([0.1, 0.2, 0.5, 1, 2, 3, 5, 7, 10, 15, 20, 25, 30, 40, 50]) * units('g/kg')
         p_all = np.linspace(1050, 100, 65) * units.hPa
         mixing = self.__skew.plot_mixing_lines(pressure=p_all, mixing_ratio=w_mixing, alpha=0.45)
         if mixing:
             mixing.set_color('#90EE90') # Salatoviy
-            mixing.set_linewidth(2.5)
+            mixing.set_linewidth(2.0)
         
         # Изотермы (наклонные линии, сетка по X в Skew-T проекции)
-        self.__ax_skew.grid(True, axis='x', color='red', linewidth=1, alpha=0.45)
+        self.__ax_skew.grid(True, axis='x', color='red', linewidth=1.5, alpha=0.3)
         
         # Изобары (горизонтальные линии, сетка по Y)
-        self.__ax_skew.grid(True, axis='y', color='black', linewidth=1, alpha=0.45)
+        self.__ax_skew.grid(True, axis='y', color='black', linewidth=1.5, alpha=0.3)
         
         # Аналитическая линия
         p_min, p_max = self.__pressure_range2
@@ -155,7 +158,8 @@ class AtmosphericExample02:
                 t_line = mpcalc.dry_lapse(p_line, theta)
                 color = 'orange'
             elif self.__current_mode2 == 'Saturation Mixing Ratio':
-                w = self.__current_param_val2 * units('g/kg')
+                # Используем точность 0.1 (значение слайдера / 10)
+                w = (self.__current_param_val2 / 10.0) * units('g/kg')
                 vapor_pressure = mpcalc.vapor_pressure(p_line, w)
                 t_line = mpcalc.dewpoint(vapor_pressure)
                 color = '#90EE90' # Lightgreen
