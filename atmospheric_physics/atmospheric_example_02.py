@@ -118,24 +118,28 @@ class AtmosphericExample02:
         self.__ax_skew.set_xlim(-40, 50)
 
         # Фоновые изолинии (согласно запросу, принудительная стилизация)
-        dry = self.__skew.plot_dry_adiabats(alpha=0.3)
+        # Расширяем t0, чтобы линии заполнили весь график (особенно верхний правый угол)
+        t0_dry = np.arange(-100, 200, 10) * units.degC
+        dry = self.__skew.plot_dry_adiabats(t0=t0_dry, alpha=0.45)
         dry.set_color('orange')
-        dry.set_linewidth(1.5)
+        dry.set_linewidth(2.5)
         
-        moist = self.__skew.plot_moist_adiabats(alpha=0.3)
+        t0_moist = np.arange(-100, 100, 5) * units.degC
+        moist = self.__skew.plot_moist_adiabats(t0=t0_moist, alpha=0.45)
         moist.set_color('green')
-        moist.set_linewidth(1.5)
+        moist.set_linewidth(2.5)
         
-        mixing = self.__skew.plot_mixing_lines(alpha=0.3)
-        mixing.set_color('#90EE90') # Salatoviy
-        mixing.set_linewidth(1.5)
+        w_mixing = np.array([0.1, 0.2, 0.5, 1, 2, 3, 5, 7, 10, 15, 20, 25, 30, 40, 50]) * units('g/kg')
+        mixing = self.__skew.plot_mixing_lines(mixing_ratio=w_mixing, alpha=0.45)
+        if mixing:
+            mixing.set_color('#90EE90') # Salatoviy
+            mixing.set_linewidth(2.5)
         
-        isotherms = self.__skew.plot_isotherms(alpha=0.3)
-        isotherms.set_color('red')
-        isotherms.set_linewidth(1.5)
+        # Изотермы (наклонные линии, сетка по X в Skew-T проекции)
+        self.__ax_skew.grid(True, axis='x', color='red', linewidth=1, alpha=0.45)
         
-        # Изобары (горизонтальные линии)
-        self.__ax_skew.grid(True, axis='y', color='black', linewidth=1.5, alpha=0.3)
+        # Изобары (горизонтальные линии, сетка по Y)
+        self.__ax_skew.grid(True, axis='y', color='black', linewidth=1, alpha=0.45)
         
         # Аналитическая линия
         p_min, p_max = self.__pressure_range2
