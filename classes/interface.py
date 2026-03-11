@@ -64,7 +64,8 @@ class PlotInterface(GraphObjects):
         self.radio_thermo = QRadioButton("Thermodynamics")
         self.radio_atmospheric = QRadioButton("Atmospheric Physics")
         
-        self.radio_general.setChecked(True)
+        # По умолчанию выбираем атмосферную физику
+        self.radio_atmospheric.setChecked(True)
         
         self.modeGroup.addButton(self.radio_general)
         self.modeGroup.addButton(self.radio_seismic)
