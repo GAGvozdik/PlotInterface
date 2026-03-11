@@ -379,6 +379,8 @@ class PlotInterface(GraphObjects):
 
         if position:
             tab.addWidget(box, *position)
+        else:
+            tab.addWidget(box)
 
         if v == True:
             layout = QVBoxLayout()
