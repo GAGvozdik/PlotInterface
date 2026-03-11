@@ -62,16 +62,19 @@ class PlotInterface(GraphObjects):
         self.radio_general = QRadioButton("General")
         self.radio_seismic = QRadioButton("Seismic")
         self.radio_thermo = QRadioButton("Thermodynamics")
+        self.radio_atmospheric = QRadioButton("Atmospheric Physics")
         
         self.radio_general.setChecked(True)
         
         self.modeGroup.addButton(self.radio_general)
         self.modeGroup.addButton(self.radio_seismic)
         self.modeGroup.addButton(self.radio_thermo)
+        self.modeGroup.addButton(self.radio_atmospheric)
         
         self.addToBox(self.sidebar_box, self.radio_general)
         self.addToBox(self.sidebar_box, self.radio_seismic)
         self.addToBox(self.sidebar_box, self.radio_thermo)
+        self.addToBox(self.sidebar_box, self.radio_atmospheric)
         
         # Прижимаем кнопки к верху
         self.sidebar_box.layout().addStretch(1)

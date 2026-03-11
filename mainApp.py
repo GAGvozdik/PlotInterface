@@ -16,6 +16,7 @@ except Exception:
 from geostatistics.examples import AllExamples
 from seismic_examples.all_seismic_examples import AllSeismicExamples
 from thermodynamics.all_thermo_examples import AllThermoExamples
+from atmospheric_physics.all_atmospheric_examples import AllAtmosphericExamples
 from classes.interface import PlotInterface
 
 from PyQt5.QtWidgets import QApplication
@@ -26,7 +27,7 @@ try:
 except ImportError:
     pywinstyles = None
 
-class MainApp(AllExamples, AllSeismicExamples, AllThermoExamples, PlotInterface):
+class MainApp(AllExamples, AllSeismicExamples, AllThermoExamples, AllAtmosphericExamples, PlotInterface):
 
     def __init__(self):
         # 1. Инициализация базового интерфейса (конструктор ОДИН)
@@ -65,6 +66,8 @@ class MainApp(AllExamples, AllSeismicExamples, AllThermoExamples, PlotInterface)
             self.init_seismic_tabs()
         elif selected_text == "Thermodynamics":
             self.init_thermo_tabs()
+        elif selected_text == "Atmospheric Physics":
+            self.init_atmospheric_tabs()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
