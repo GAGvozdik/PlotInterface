@@ -103,7 +103,7 @@ class AtmosphericExample01:
         slider.setValue(new_val)
         self.__current_param_val2 = float(new_val)
         
-    @PlotInterface.canvasDraw(tab="01 Atm")
+    @PlotInterface.canvasDraw(tab="01 Atm.")
     def __draw_skewt(self):
         figure = self.tabAtr(f'{self.__tab_name2}Figure')
         figure.clear()
@@ -123,7 +123,7 @@ class AtmosphericExample01:
         self.__ax_skew.set_xlim(-40, 50)
         
         # Увеличение шрифтов штрихов
-        self.__ax_skew.tick_params(axis='both', labelsize=20)
+        self.__ax_skew.tick_params(axis='both', labelsize=15)
         
         ref_p = 1000 * units.hPa
 
@@ -247,5 +247,5 @@ class AtmosphericExample01:
         except Exception as e:
             print(f"Error calculating analytical line: {e}")
 
-        self.__ax_skew.set_xlabel('Temperature (°C)', fontsize=25)
-        self.__ax_skew.set_ylabel('Pressure (hPa)', fontsize=25)
+        self.__ax_skew.set_xlabel('Temperature (°C)', fontsize=20)
+        self.__ax_skew.set_ylabel('Pressure (hPa)', fontsize=20)
