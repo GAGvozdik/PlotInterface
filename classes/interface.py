@@ -251,9 +251,6 @@ class PlotInterface(GraphObjects):
         loadButton.clicked.connect(self.get_file_way)
         self.addToBox(sliderBox, loadButton)
 
-        spacer = QSpacerItem(20, 60, QSizePolicy.Minimum, QSizePolicy.Expanding)
-        sliderBox.layout().addItem(spacer)
-
         return layout
 
     def tabAtr(self, name):
@@ -380,7 +377,8 @@ class PlotInterface(GraphObjects):
         if size == ['none', 'none']:
             box.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        tab.addWidget(box, *position)
+        if position:
+            tab.addWidget(box, *position)
 
         if v == True:
             layout = QVBoxLayout()

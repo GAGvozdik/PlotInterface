@@ -1,7 +1,8 @@
 import numpy as np
 from classes.interface import PlotInterface
 import matplotlib.pyplot as plt
-from PyQt5.QtWidgets import QListWidget, QPushButton, QHBoxLayout
+from PyQt5.QtWidgets import QListWidget, QPushButton, QHBoxLayout, QSizePolicy
+from PyQt5.QtCore import Qt
 
 try:
     from metpy.plots import SkewT
@@ -15,28 +16,15 @@ class AtmosphericExample01:
     def init_atmospheric_01(self):
         self.__tab_name2 = "01 Atm."
         self.__tab2 = self.createTab(self.__tab_name2)
+        s_box = self.tabAtr(f"{self.__tab_name2}SliderBox")
         
         # Данные менеджера линий
-        self.__lines_data = [] # Список словарей: {'mode': str, 'val': float, 'p_range': tuple, 'name': str}
+        self.__lines_data = [] 
         self.__active_line_index = -1
-        self.__analytical_line_objs = [] # Список отрисованных объектов matplotlib
+        self.__line_counter = 0
+        self.__analytical_line_objs = [] 
         
-        # Блок МЕНЕДЖЕРА ЛИНИЙ
-        self.__manager_box = self.createBox(self.__tab2, "LINES MANAGER", position=[0, 2], size=['auto', 300])
-        self.__list_widget = QListWidget()
-        self.__list_widget.currentRowChanged.connect(self.__on_line_selected)
-        self.addToBox(self.__manager_box, self.__list_widget)
-        
-        btn_layout = QHBoxLayout()
-        self.__btn_add = QPushButton("Add Line")
-        self.__btn_add.clicked.connect(self.__add_line)
-        self.__btn_del = QPushButton("Delete Line")
-        self.__btn_del.clicked.connect(self.__delete_line)
-        btn_layout.addWidget(self.__btn_add)
-        btn_layout.addWidget(self.__btn_del)
-        self.__manager_box.layout().addLayout(btn_layout)
-
-        # Группа радиокнопок
+        # 1. Группа радиокнопок (ВЕРХ)
         self.createRadioGroup(
             ['Isotherm', 'Dry adiabat', 'Saturation Mixing Ratio', 'θe'],
             tab=self.__tab2,
@@ -44,7 +32,7 @@ class AtmosphericExample01:
             name='Isolines'
         )
         
-        # Одиночный слайдер
+        # 2. Одиночный слайдер
         self.__param_slider_box2 = self.createSlider(
             -40, 100, init=20,
             func=self.__on_param_changed,
@@ -53,7 +41,7 @@ class AtmosphericExample01:
             label=True
         )
         
-        # Range Slider
+        # 3. Range Slider
         self.createRangeSlider(
             100, 1050, init=(200, 800),
             func=self.__on_pressure_changed,
@@ -61,19 +49,63 @@ class AtmosphericExample01:
             tab=self.__tab2,
             label=True
         )
+
+        # 4. Блок МЕНЕДЖЕРА ЛИНИЙ (Теперь ОТОБРАЖАЕТСЯ)
+        self.__manager_box = self.createBox(self.__tab2, "LINES MANAGER", size=['auto', 300])
+        self.__manager_box.layout().setContentsMargins(10, 10, 10, 10)
         
-        # Инициализируем первую линию по умолчанию
+        self.__list_widget = QListWidget()
+        self.__list_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.__list_widget.setWordWrap(True)
+        
+        # Добавляем список внутрь менеджера
+        self.addToBox(self.__manager_box, self.__list_widget)
+        
+        # ГЕОМЕТРИЯ: Жесткий фикс
+        self.__list_widget.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Expanding)
+        self.__list_widget.setMinimumWidth(0)
+        self.__list_widget.setMaximumWidth(275)
+        
+        self.__list_widget.currentRowChanged.connect(self.__on_line_selected)
+        
+        btn_layout = QHBoxLayout()
+        self.__btn_add = QPushButton("Add")
+        self.__btn_add.clicked.connect(self.__add_line)
+        self.__btn_del = QPushButton("Del")
+        self.__btn_del.clicked.connect(self.__delete_line)
+        btn_layout.addWidget(self.__btn_add)
+        btn_layout.addWidget(self.__btn_del)
+        self.__manager_box.layout().addLayout(btn_layout)
+        
+        # ВАЖНО: Добавляем сам бокс менеджера в боковую панель!
+        self.addToBox(s_box, self.__manager_box)
+        
+        # 5. Кнопки Save/Load (Перемещаем вниз)
+        # Находим кнопки по тексту и перемещаем их в конец лейаута
+        for i in range(s_box.layout().count()):
+            item = s_box.layout().itemAt(i)
+            if item and item.widget():
+                w = item.widget()
+                if isinstance(w, QPushButton) and w.text() in ["Save picture", "Load file"]:
+                    s_box.layout().removeWidget(w)
+                    s_box.layout().addWidget(w)
+
+        # Прижимаем всё меню к верху
+        s_box.layout().insertStretch(s_box.layout().count() - 2, 1)
+        
+        # Инициализируем первую линию
         self.__add_line()
         self.__draw_skewt()
 
     def __add_line(self):
         """Добавление новой линии с автоинкрементом."""
-        idx = len(self.__lines_data) + 1
+        self.__line_counter += 1
+        mode = 'Isotherm'
         new_line = {
-            'mode': 'Isotherm',
+            'mode': mode,
             'val': 20.0,
             'p_range': (200, 800),
-            'name': f"[{idx:02d}] Isotherm"
+            'name': f"[{self.__line_counter:02d}] {mode}"
         }
         self.__lines_data.append(new_line)
         self.__list_widget.addItem(new_line['name'])
@@ -89,25 +121,23 @@ class AtmosphericExample01:
             self.__draw_skewt()
 
     def __on_line_selected(self, index):
-        """Синхронизация интерфейса при выборе линии из списка."""
+        """Синхронизация интерфейса."""
         if index < 0 or index >= len(self.__lines_data): return
         self.__active_line_index = index
         data = self.__lines_data[index]
         
-        # Блокируем сигналы, чтобы не вызвать лишнюю перерисовку при синхронизации
-        group = getattr(self, "Isolines Group", None)
-        if group:
-            group.blockSignals(True)
-            for btn in group.buttons():
+        if hasattr(self, 'modeGroupIsolines'):
+            self.modeGroupIsolines.blockSignals(True)
+            for btn in self.modeGroupIsolines.buttons():
                 if btn.text() == data['mode']:
                     btn.setChecked(True)
                     break
-            group.blockSignals(False)
+            self.modeGroupIsolines.blockSignals(False)
         
         slider = getattr(self, "Surface Temp slider", None)
         if slider:
             slider.blockSignals(True)
-            self.__update_slider_limits() # Обновляем границы под режим линии
+            self.__update_slider_limits()
             slider.setValue(int(data['val']))
             slider.blockSignals(False)
             
@@ -123,13 +153,12 @@ class AtmosphericExample01:
         if self.__active_line_index < 0: return
         mode = button.text()
         self.__lines_data[self.__active_line_index]['mode'] = mode
-        # Обновляем имя в списке
-        idx = self.__active_line_index + 1
-        new_name = f"[{idx:02d}] {mode}"
-        self.__lines_data[self.__active_line_index]['name'] = new_name
         
-        item = self.__list_widget.item(self.__active_line_index)
-        if item: item.setText(new_name)
+        old_name = self.__list_widget.item(self.__active_line_index).text()
+        prefix = old_name.split(']')[0] + ']'
+        new_name = f"{prefix} {mode}"
+        self.__lines_data[self.__active_line_index]['name'] = new_name
+        self.__list_widget.item(self.__active_line_index).setText(new_name)
         
         self.__update_slider_limits()
         self.__draw_skewt()
@@ -182,7 +211,6 @@ class AtmosphericExample01:
             figure.clear()
             return
 
-        # Кэширование фона (перерисовываем если изменился режим активной линии или тема)
         active_mode = self.__lines_data[self.__active_line_index]['mode'] if self.__active_line_index >= 0 else 'None'
         current_state = (active_mode, self.darkMode)
         
@@ -199,34 +227,31 @@ class AtmosphericExample01:
             self.__ax_skew.tick_params(axis='both', labelsize=15)
             
             ref_p = 1000 * units.hPa
-            # Ультра-контрастная прозрачность
             a_iso = 0.70 if active_mode == 'Isotherm' else 0.30
             a_dry = 0.70 if active_mode == 'Dry adiabat' else 0.30
             a_mix = 0.70 if active_mode == 'Saturation Mixing Ratio' else 0.30
             a_moist = 0.70 if active_mode == 'θe' else 0.30
 
-            # Фоновые линии (Dry, Moist, Mixing Ratio, Isotherms)
-            # 1. Dry
             t0_dry = np.arange(-100, 200, 10) * units.degC
             dry = self.__skew.plot_dry_adiabats(t0=t0_dry, alpha=a_dry, linestyle='-')
             dry.set_color('orange')
             dry.set_linewidth(2.0)
+            
             p_dry_label = 250 * units.hPa
             for t0 in t0_dry[::2]:
                 try:
                     t = mpcalc.dry_lapse(p_dry_label, t0, reference_pressure=ref_p).to('degC').m
                     if -44 <= t <= 46:
-                        angle = 45 # Упростим расчет угла для скорости в мульти-режиме
                         self.__ax_skew.text(t, p_dry_label.m, f'{t0.m:.0f}', color='orange', fontsize=14,
-                                            ha='center', va='center', rotation=angle, clip_on=True,
+                                            ha='center', va='center', rotation=45, clip_on=True,
                                             bbox=dict(facecolor=self.graphColor, edgecolor='none', alpha=1.0, pad=0.2))
                 except: continue
 
-            # 2. Moist
             t0_moist = np.arange(-100, 100, 5) * units.degC
             moist = self.__skew.plot_moist_adiabats(t0=t0_moist, alpha=a_moist, linestyle='-')
             moist.set_color('green')
             moist.set_linewidth(2.0)
+            
             p_moist_label = 400 * units.hPa
             for t0 in t0_moist[::4]:
                 try:
@@ -237,13 +262,13 @@ class AtmosphericExample01:
                                             bbox=dict(facecolor=self.graphColor, edgecolor='none', alpha=1.0, pad=0.2))
                 except: continue
 
-            # 3. Mix
             w_mixing = np.array([0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 2, 5, 10, 20, 30, 50]) * units('g/kg')
             p_all = np.linspace(1050, 100, 65) * units.hPa
             mixing = self.__skew.plot_mixing_lines(pressure=p_all, mixing_ratio=w_mixing, alpha=a_mix, linestyle='--')
             if mixing:
                 mixing.set_color('#90EE90')
                 mixing.set_linewidth(2.0)
+            
             p_mix_label = 600 * units.hPa
             for w in w_mixing:
                 try:
@@ -254,19 +279,17 @@ class AtmosphericExample01:
                                             bbox=dict(facecolor=self.graphColor, edgecolor='none', alpha=1.0, pad=0.2))
                 except: continue
             
-            # 4. Grid
             self.__ax_skew.grid(True, axis='x', color='red', linewidth=1.5, alpha=a_iso)
             self.__ax_skew.grid(True, axis='y', color='black', linewidth=1.5, alpha=0.3)
             self.__ax_skew.set_xlabel('Temperature (°C)', fontsize=20)
             self.__ax_skew.set_ylabel('Pressure (hPa)', fontsize=20)
         else:
-            # Очищаем только аналитические линии
             for obj in self.__analytical_line_objs:
                 try: obj.remove()
                 except: pass
             self.__analytical_line_objs = []
 
-        # 5. Отрисовка всех линий из списка
+        # Отрисовка всех линий
         for i, data in enumerate(self.__lines_data):
             p_min, p_max = data['p_range']
             p_line = np.linspace(p_max, p_min, 100) * units.hPa
