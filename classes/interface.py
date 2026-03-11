@@ -277,6 +277,54 @@ class PlotInterface(GraphObjects):
         self.addToBox(self.tabAtr(f'{tab.objectName()}SliderBox'), sliderBox)
         return sliderBox
 
+    def createRangeSlider(self, min, max, tab, init=(0, 100), func='none', name='', label=False):
+        try:
+            from superqt import QRangeSlider
+        except ImportError:
+            print("superqt is not installed. Falling back to regular sliders.")
+            return None
+
+        sliderBox = self.createBox(tab, name, size=['auto', 100], v=True)
+        sliderBox.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+
+        slider = QRangeSlider(Qt.Horizontal)
+        slider.setMinimum(min)
+        slider.setMaximum(max)
+        slider.setValue(init)
+        slider.setFixedHeight(40)
+
+        if func != 'none':
+            slider.valueChanged.connect(func)
+        self.addToBox(sliderBox, slider)
+
+        if label:
+            label_widget = QLabel(f"{init[0]} - {init[1]}")
+            setattr(self, f"{name} Slider Label", label_widget)
+            self.addToBox(sliderBox, label_widget)
+
+        setattr(self, f"{name} slider", slider)
+        self.addToBox(self.tabAtr(f'{tab.objectName()}SliderBox'), sliderBox)
+        return sliderBox
+
+    def createRadioGroup(self, options, tab, func='none', name=''):
+        groupBox = self.createBox(tab, name, size=['auto', 'auto'], v=True)
+        groupBox.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+        
+        buttonGroup = QButtonGroup(self)
+        for i, option in enumerate(options):
+            radio = QRadioButton(option)
+            if i == 0:
+                radio.setChecked(True)
+            buttonGroup.addButton(radio, i)
+            self.addToBox(groupBox, radio)
+            
+        if func != 'none':
+            buttonGroup.buttonClicked.connect(func)
+            
+        setattr(self, f"{name} Group", buttonGroup)
+        self.addToBox(self.tabAtr(f'{tab.objectName()}SliderBox'), groupBox)
+        return buttonGroup
+
     def createQDial(self, min, max, init, tab, func='none', name='', label=False):
         dialBox = self.createBox(tab, name, size=['auto', 210])
         dialBox.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
