@@ -61,7 +61,7 @@ class AtmosphericExample02:
         label = getattr(self, "Surface Temp 2 Slider Label", None)
         if label:
             if self.__current_mode2 == 'Saturation Mixing Ratio':
-                label.setText(f"{val/10.0:.1f} g/kg")
+                label.setText(f"{val/10000.0:.4f} g/kg")
             else:
                 label.setText(str(val))
         self.__draw_skewt()
@@ -88,7 +88,7 @@ class AtmosphericExample02:
         limits = {
             'Isotherm': (-80, 50),
             'Potential Temperature': (-20, 150),
-            'Saturation Mixing Ratio': (1, 500), # 0.1 - 50.0 g/kg
+            'Saturation Mixing Ratio': (1, 500000), # 0.0001 - 50.0 g/kg
             'Equivalent Potential Temperature': (-20, 150)
         }
         
@@ -120,32 +120,89 @@ class AtmosphericExample02:
         self.__ax_skew.set_ylim(1050, 100)
         self.__ax_skew.set_xlim(-40, 50)
 
-        # Фоновые изолинии (согласно запросу, принудительная стилизация)
-        # Расширяем t0, чтобы линии заполнили весь график (особенно верхний правый угол)
+        # 1. Сухие адиабаты (Dry Adiabats) - Оранжевые
         t0_dry = np.arange(-100, 200, 10) * units.degC
         dry = self.__skew.plot_dry_adiabats(t0=t0_dry, alpha=0.45, linestyle='-')
         dry.set_color('orange')
         dry.set_linewidth(2.0)
         
+        # Подписи для сухих адиабат (Приоритет 250 hPa)
+        p_levels = [250, 300, 400, 500, 600, 700, 850]
+        for t0 in t0_dry[::2]:
+            for p_val in p_levels:
+                try:
+                    p_label = np.atleast_1d(p_val) * units.hPa
+                    t = np.atleast_1d(mpcalc.dry_lapse(p_label, t0).m)[0]
+                    if -42 <= t <= 52:
+                        t_near = np.atleast_1d(mpcalc.dry_lapse(p_label - 10 * units.hPa, t0).m)[0]
+                        p1 = self.__ax_skew.transData.transform((t, p_val))
+                        p2 = self.__ax_skew.transData.transform((t_near, p_val - 10))
+                        angle = np.degrees(np.arctan2(p2[1]-p1[1], p2[0]-p1[0]))
+                        self.__ax_skew.text(t, p_val, f'{t0.m:.0f}', color='orange', fontsize=7,
+                                            ha='center', va='center', rotation=angle, clip_on=True,
+                                            bbox=dict(facecolor=self.graphColor, edgecolor='none', alpha=1.0, pad=0.2))
+                        break
+                except: continue
+
+        # 2. Влажные адиабаты (Moist Adiabats) - Зеленые
         t0_moist = np.arange(-100, 100, 5) * units.degC
         moist = self.__skew.plot_moist_adiabats(t0=t0_moist, alpha=0.45, linestyle='-')
         moist.set_color('green')
         moist.set_linewidth(2.0)
         
-        w_mixing = np.array([0.1, 0.2, 0.5, 1, 2, 3, 5, 7, 10, 15, 20, 25, 30, 40, 50]) * units('g/kg')
+        # Подписи для влажных адиабат (Приоритет 400 hPa)
+        p_levels_moist = [400, 500, 600, 700, 850, 300]
+        for t0 in t0_moist[::4]:
+            for p_val in p_levels_moist:
+                try:
+                    p_label = np.atleast_1d(p_val) * units.hPa
+                    t = np.atleast_1d(mpcalc.moist_lapse(p_label, t0).m)[0]
+                    if -42 <= t <= 52:
+                        t_near = np.atleast_1d(mpcalc.moist_lapse(p_label - 10 * units.hPa, t0).m)[0]
+                        p1 = self.__ax_skew.transData.transform((t, p_val))
+                        p2 = self.__ax_skew.transData.transform((t_near, p_val - 10))
+                        angle = np.degrees(np.arctan2(p2[1]-p1[1], p2[0]-p1[0]))
+                        self.__ax_skew.text(t, p_val, f'{t0.m:.0f}', color='green', fontsize=7,
+                                            ha='center', va='center', rotation=angle, clip_on=True,
+                                            bbox=dict(facecolor=self.graphColor, edgecolor='none', alpha=1.0, pad=0.2))
+                        break
+                except: continue
+
+        # 3. Линии смешивания (Mixing Ratio) - Салатовые
+        w_mixing = np.array([0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 2, 5, 10, 20, 30, 50]) * units('g/kg')
         p_all = np.linspace(1050, 100, 65) * units.hPa
-        mixing = self.__skew.plot_mixing_lines(pressure=p_all, mixing_ratio=w_mixing, alpha=0.45)
+        mixing = self.__skew.plot_mixing_lines(pressure=p_all, mixing_ratio=w_mixing, alpha=0.45, linestyle='--')
         if mixing:
-            mixing.set_color('#90EE90') # Salatoviy
+            mixing.set_color('#90EE90')
             mixing.set_linewidth(2.0)
+            
+        # Подписи для линий смешивания (Приоритет 600 hPa)
+        p_levels_mix = [600, 700, 850, 500, 400]
+        for w in w_mixing:
+            for p_val in p_levels_mix:
+                try:
+                    p_label = np.atleast_1d(p_val) * units.hPa
+                    v_p = mpcalc.vapor_pressure(p_label, w)
+                    t = np.atleast_1d(mpcalc.dewpoint(v_p).m)[0]
+                    if -42 <= t <= 52:
+                        v_p_near = mpcalc.vapor_pressure(p_label - 10 * units.hPa, w)
+                        t_near = np.atleast_1d(mpcalc.dewpoint(v_p_near).m)[0]
+                        p1 = self.__ax_skew.transData.transform((t, p_val))
+                        p2 = self.__ax_skew.transData.transform((t_near, p_val - 10))
+                        angle = np.degrees(np.arctan2(p2[1]-p1[1], p2[0]-p1[0]))
+                        
+                        label_text = f'{w.m:.0g}' if w.m >= 0.01 else f'{w.m:.4f}'
+                        self.__ax_skew.text(t, p_val, label_text, color='#90EE90', fontsize=7,
+                                            ha='center', va='center', rotation=angle, clip_on=True,
+                                            bbox=dict(facecolor=self.graphColor, edgecolor='none', alpha=1.0, pad=0.2))
+                        break
+                except: continue
         
-        # Изотермы (наклонные линии, сетка по X в Skew-T проекции)
+        # 4. Сетка (Изотермы и Изобары)
         self.__ax_skew.grid(True, axis='x', color='red', linewidth=1.5, alpha=0.3)
-        
-        # Изобары (горизонтальные линии, сетка по Y)
         self.__ax_skew.grid(True, axis='y', color='black', linewidth=1.5, alpha=0.3)
         
-        # Аналитическая линия
+        # 5. Аналитическая линия
         p_min, p_max = self.__pressure_range2
         p_line = np.linspace(p_max, p_min, 100) * units.hPa
         
@@ -158,11 +215,10 @@ class AtmosphericExample02:
                 t_line = mpcalc.dry_lapse(p_line, theta)
                 color = 'orange'
             elif self.__current_mode2 == 'Saturation Mixing Ratio':
-                # Используем точность 0.1 (значение слайдера / 10)
-                w = (self.__current_param_val2 / 10.0) * units('g/kg')
+                w = (self.__current_param_val2 / 10000.0) * units('g/kg')
                 vapor_pressure = mpcalc.vapor_pressure(p_line, w)
                 t_line = mpcalc.dewpoint(vapor_pressure)
-                color = '#90EE90' # Lightgreen
+                color = '#90EE90'
             elif self.__current_mode2 == 'Equivalent Potential Temperature':
                 theta_e = (self.__current_param_val2 + 273.15) * units.kelvin
                 t_line = mpcalc.moist_lapse(p_line, theta_e)
