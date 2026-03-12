@@ -199,10 +199,13 @@ class AtmosphericExample01:
             
             ref_p = 1000 * units.hPa
             if active_mode == 'None':
-                a_iso = a_dry = a_mix = a_moist = 0.30
+                a_iso = a_dry = 0.5
+                a_mix = 0.40
+                a_moist = 0.6
             else:
                 a_iso, a_dry, a_mix, a_moist = (0.70 if active_mode == m else 0.30 for m in ['Isotherm', 'Dry adiabat', 'Saturation Mixing Ratio', 'θe'])
-            
+                if active_mode == 'θe': a_moist = 0.85
+                
             pe = [path_effects.withStroke(linewidth=4, foreground=self.graphColor)]
             x_min, x_max = self.__ax_skew.get_xlim()
             c_dry, c_moist, c_mix = "orange", "#009F0B", "#18CE18"
