@@ -24,6 +24,7 @@ class AtmosphericExample01:
         self.__active_line_index = -1
         self.__line_counter = 0
         self.__analytical_line_objs = [] 
+        self.__background_line_width = 1
         
         # 1. Группа радиокнопок
         self.createRadioGroup(
@@ -41,6 +42,19 @@ class AtmosphericExample01:
             tab=self.__tab2,
             label=True
         )
+
+        # 2. Толщина линий
+        lw_slider_box = self.createSlider(
+            1, 300, init=int(self.__background_line_width * 100), 
+            func=self.__on_background_line_width_changed,
+            name='Background LineWidth', 
+            tab=self.__tab2,
+            label=True
+        )
+        self.addToBox(s_box, lw_slider_box)
+        label = getattr(self, "Background LineWidth Slider Label", None)
+        if label: label.setText(f"{self.__background_line_width}")
+        # -----------------------
         
         # 3. Range Slider
         self.createRangeSlider(
@@ -164,6 +178,12 @@ class AtmosphericExample01:
         if label: label.setText(f"{val[0]} - {val[1]}")
         self.__draw_skewt()
 
+    def __on_background_line_width_changed(self, val):
+        self.__background_line_width = val / 100
+        label = getattr(self, "Background LineWidth Slider Label", None)
+        if label: label.setText(f"{self.__background_line_width}")
+        self.__draw_skewt()
+
     def __update_slider_limits(self):
         if self.__active_line_index < 0: return
         slider = getattr(self, "Surface Temp slider", None)
@@ -206,13 +226,13 @@ class AtmosphericExample01:
                 a_iso, a_dry, a_mix, a_moist = (0.70 if active_mode == m else 0.30 for m in ['Isotherm', 'Dry adiabat', 'Saturation Mixing Ratio', 'θe'])
                 if active_mode == 'θe': a_moist = 0.85
                 
-            pe = [path_effects.withStroke(linewidth=4, foreground=self.graphColor)]
+            pe = [path_effects.withStroke(linewidth=self.__background_line_width*4, foreground=self.graphColor)]
             x_min, x_max = self.__ax_skew.get_xlim()
             c_dry, c_moist, c_mix = "orange", "#009F0B", "#18CE18"
 
             # 1. Dry
             t0_dry = np.arange(-100, 200, 10) * units.degC
-            dry_lines = self.__skew.plot_dry_adiabats(t0=t0_dry, alpha=a_dry, linestyle='-', linewidth=2.0)
+            dry_lines = self.__skew.plot_dry_adiabats(t0=t0_dry, alpha=a_dry, linestyle='-', linewidth=self.__background_line_width*2.0)
             dry_lines.set_color(c_dry)
             for t0 in t0_dry:
                 t = np.atleast_1d(mpcalc.dry_lapse(200 * units.hPa, t0, reference_pressure=ref_p).to('degC').m)[0]
@@ -240,7 +260,7 @@ class AtmosphericExample01:
 
             # 3. Mix
             w_mixing = np.array([0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 2, 5, 10, 20, 30, 50]) * units('g/kg')
-            mix_lines = self.__skew.plot_mixing_lines(pressure=np.linspace(1050, 100, 65) * units.hPa, mixing_ratio=w_mixing, alpha=a_mix, linestyle='--', linewidth=2.0)
+            mix_lines = self.__skew.plot_mixing_lines(pressure=np.linspace(1050, 100, 65) * units.hPa, mixing_ratio=w_mixing, alpha=a_mix, linestyle='--', linewidth=self.__background_line_width*2.0)
             if mix_lines: mix_lines.set_color(c_mix)
             for w in w_mixing:
                 t = np.atleast_1d(mpcalc.dewpoint(mpcalc.vapor_pressure(500 * units.hPa, w)).to('degC').m)[0]
@@ -253,8 +273,8 @@ class AtmosphericExample01:
                     txt = f'{w.m:.0g}' if w.m >= 0.01 else f'{w.m:.4f}'
                     self.__ax_skew.text(t, 500, txt, color=c_mix, fontsize=14, fontweight='bold', ha='center', va='center', rotation=angle, clip_on=True, path_effects=pe, alpha=a_mix)
             
-            self.__ax_skew.grid(True, axis='x', color='#AD1C1C', linewidth=1.5, alpha=a_iso)
-            self.__ax_skew.grid(True, axis='y', color="#202020", linewidth=1.5, alpha=0.3)
+            self.__ax_skew.grid(True, axis='x', color='#AD1C1C', linewidth=self.__background_line_width*1.5, alpha=a_iso)
+            self.__ax_skew.grid(True, axis='y', color="#202020", linewidth=self.__background_line_width*1.5, alpha=0.3)
             self.__ax_skew.set_xlabel('Temperature (°C)', fontsize=20); self.__ax_skew.set_ylabel('Pressure (hPa)', fontsize=20)
         else:
             for obj in self.__analytical_line_objs:
