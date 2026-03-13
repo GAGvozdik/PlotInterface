@@ -28,7 +28,7 @@ class AtmosphericExample01:
         
         # 1. Группа радиокнопок
         self.createRadioGroup(
-            ['Isotherm', 'Dry adiabat', 'Saturation Mixing Ratio', 'θe', 'None'],
+            ['None', 'Dry adiabat', 'Saturation Mixing Ratio', 'θe', 'Isotherm'],
             tab=self.__tab2,
             func=self.__on_mode_changed,
             name='Isolines'
@@ -108,7 +108,7 @@ class AtmosphericExample01:
 
     def __add_line(self):
         self.__line_counter += 1
-        new_line = {'mode': 'Isotherm', 'val': 20.0, 'p_range': (200, 800), 'name': f"[{self.__line_counter:02d}] Isotherm"}
+        new_line = {'mode': 'None', 'val': 20.0, 'p_range': (200, 800), 'name': f"[{self.__line_counter:02d}] None"}
         self.__lines_data.append(new_line)
         self.__list_widget.addItem(new_line['name'])
         self.__list_widget.setCurrentRow(len(self.__lines_data) - 1)
@@ -217,6 +217,11 @@ class AtmosphericExample01:
             self.updateAxesStyle(self.__ax_skew)
             self.__ax_skew.set_ylim(1050, 100); self.__ax_skew.set_xlim(-40, 50); self.__ax_skew.tick_params(axis='both', labelsize=15)
             
+            # Принудительное обновление для стабильности трансформаций
+            self.__ax_skew.apply_aspect()
+            canvas = self.tabAtr(f'{self.__tab_name2}Canvas')
+            canvas_ready = canvas and canvas.width() > 0 and canvas.height() > 0
+            
             ref_p = 1000 * units.hPa
             if active_mode == 'None':
                 a_iso = a_dry = a_mix = a_moist = 0.30
@@ -236,8 +241,13 @@ class AtmosphericExample01:
                 t = np.atleast_1d(mpcalc.dry_lapse(200 * units.hPa, t0, reference_pressure=ref_p).to('degC').m)[0]
                 if x_min + 2 <= t <= x_max - 2:
                     t_near = np.atleast_1d(mpcalc.dry_lapse(199 * units.hPa, t0, reference_pressure=ref_p).to('degC').m)[0]
-                    p1 = self.__ax_skew.transData.transform((t, 200)); p2 = self.__ax_skew.transData.transform((t_near, 199))
-                    angle = np.degrees(np.arctan2(p2[1]-p1[1], p2[0]-p1[0]))
+                    if canvas_ready:
+                        p1 = self.__ax_skew.transData.transform((t, 200))
+                        p2 = self.__ax_skew.transData.transform((t_near, 199))
+                        angle = np.degrees(np.arctan2(p2[1]-p1[1], p2[0]-p1[0]))
+                    else:
+                        angle = 30
+                    
                     if angle > 90: angle -= 180
                     elif angle < -90: angle += 180
                     self.__ax_skew.text(t, 200, f'{t0.m:.0f}', color=c_dry, fontsize=14, fontweight='bold', ha='center', va='center', rotation=angle, clip_on=True, path_effects=pe, alpha=a_dry)
@@ -250,10 +260,15 @@ class AtmosphericExample01:
                 t = np.atleast_1d(mpcalc.moist_lapse(300 * units.hPa, t0, reference_pressure=ref_p).to('degC').m)[0]
                 if x_min + 2 <= t <= x_max - 2:
                     t_near = np.atleast_1d(mpcalc.moist_lapse(299 * units.hPa, t0, reference_pressure=ref_p).to('degC').m)[0]
-                    p1 = self.__ax_skew.transData.transform((t, 300)); p2 = self.__ax_skew.transData.transform((t_near, 299))
-                    angle = np.degrees(np.arctan2(p2[1]-p1[1], p2[0]-p1[0]))
-                    if angle > 90: angle += 180
-                    elif angle < -90: angle -= 180
+                    if canvas_ready:
+                        p1 = self.__ax_skew.transData.transform((t, 300))
+                        p2 = self.__ax_skew.transData.transform((t_near, 299))
+                        angle = np.degrees(np.arctan2(p2[1]-p1[1], p2[0]-p1[0]))
+                    else:
+                        angle = 60
+                        
+                    if angle > 90: angle -= 180
+                    elif angle < -90: angle += 180
                     self.__ax_skew.text(t, 300, f'{t0.m:.0f}', color=c_moist, fontsize=14, fontweight='bold', ha='center', va='center', rotation=angle, clip_on=True, path_effects=pe, alpha=a_moist + 0.2)
 
             # 3. Mix
@@ -264,8 +279,13 @@ class AtmosphericExample01:
                 t = np.atleast_1d(mpcalc.dewpoint(mpcalc.vapor_pressure(500 * units.hPa, w)).to('degC').m)[0]
                 if x_min + 2 <= t <= x_max - 2:
                     t_near = np.atleast_1d(mpcalc.dewpoint(mpcalc.vapor_pressure(499 * units.hPa, w)).to('degC').m)[0]
-                    p1 = self.__ax_skew.transData.transform((t, 500)); p2 = self.__ax_skew.transData.transform((t_near, 499))
-                    angle = np.degrees(np.arctan2(p2[1]-p1[1], p2[0]-p1[0]))
+                    if canvas_ready:
+                        p1 = self.__ax_skew.transData.transform((t, 500))
+                        p2 = self.__ax_skew.transData.transform((t_near, 499))
+                        angle = np.degrees(np.arctan2(p2[1]-p1[1], p2[0]-p1[0]))
+                    else:
+                        angle = -60
+                        
                     if angle > 90: angle -= 180
                     elif angle < -90: angle += 180
                     txt = f'{w.m:.0g}' if w.m >= 0.01 else f'{w.m:.4f}'
