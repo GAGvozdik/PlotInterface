@@ -248,7 +248,7 @@ class PlotInterface(GraphObjects):
         loadButton.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         loadButton.setFixedHeight(60)
         loadButton.clicked.connect(self.get_file_way)
-        self.addToBox(sliderBox, loadButton)
+        # self.addToBox(sliderBox, loadButton)
 
         return layout
 

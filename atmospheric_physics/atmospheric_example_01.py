@@ -24,7 +24,7 @@ class AtmosphericExample01:
         self.__active_line_index = -1
         self.__line_counter = 0
         self.__analytical_line_objs = [] 
-        self.__background_line_width = 1
+        self.__background_line_width = 0.4
         
         # 1. Группа радиокнопок
         self.createRadioGroup(
@@ -45,7 +45,7 @@ class AtmosphericExample01:
 
         # 2. Толщина линий
         lw_slider_box = self.createSlider(
-            1, 300, init=int(self.__background_line_width * 100), 
+            1, 15, init=int(self.__background_line_width * 10), 
             func=self.__on_background_line_width_changed,
             name='Background LineWidth', 
             tab=self.__tab2,
@@ -179,7 +179,7 @@ class AtmosphericExample01:
         self.__draw_skewt()
 
     def __on_background_line_width_changed(self, val):
-        self.__background_line_width = val / 100
+        self.__background_line_width = val / 10
         label = getattr(self, "Background LineWidth Slider Label", None)
         if label: label.setText(f"{self.__background_line_width}")
         self.__draw_skewt()
@@ -209,7 +209,7 @@ class AtmosphericExample01:
             return
 
         active_mode = self.__lines_data[self.__active_line_index]['mode']
-        current_state = (active_mode, self.darkMode)
+        current_state = (active_mode, self.darkMode, self.__background_line_width)
         
         if not hasattr(self, '_bg_state') or self._bg_state != current_state:
             figure.clear(); self._bg_state = current_state; self.__analytical_line_objs = [] 
@@ -219,12 +219,10 @@ class AtmosphericExample01:
             
             ref_p = 1000 * units.hPa
             if active_mode == 'None':
-                a_iso = a_dry = 0.5
-                a_mix = 0.40
-                a_moist = 0.6
+                a_iso = a_dry = a_mix = a_moist = 0.30
             else:
                 a_iso, a_dry, a_mix, a_moist = (0.70 if active_mode == m else 0.30 for m in ['Isotherm', 'Dry adiabat', 'Saturation Mixing Ratio', 'θe'])
-                if active_mode == 'θe': a_moist = 0.85
+                if active_mode == 'θe': a_moist = 0.7
                 
             pe = [path_effects.withStroke(linewidth=self.__background_line_width*4, foreground=self.graphColor)]
             x_min, x_max = self.__ax_skew.get_xlim()
@@ -246,7 +244,7 @@ class AtmosphericExample01:
 
             # 2. Moist
             t0_moist = np.arange(-100, 100, 5) * units.degC
-            moist_lines = self.__skew.plot_moist_adiabats(t0=t0_moist, alpha=a_moist, linestyle='-', linewidth=2.0)
+            moist_lines = self.__skew.plot_moist_adiabats(t0=t0_moist, alpha=a_moist, linestyle='-', linewidth=self.__background_line_width*2.0)
             moist_lines.set_color(c_moist)
             for t0 in t0_moist:
                 t = np.atleast_1d(mpcalc.moist_lapse(300 * units.hPa, t0, reference_pressure=ref_p).to('degC').m)[0]
@@ -256,7 +254,7 @@ class AtmosphericExample01:
                     angle = np.degrees(np.arctan2(p2[1]-p1[1], p2[0]-p1[0]))
                     if angle > 90: angle -= 180
                     elif angle < -90: angle += 180
-                    self.__ax_skew.text(t, 300, f'{t0.m:.0f}', color=c_moist, fontsize=14, fontweight='bold', ha='center', va='center', rotation=angle, clip_on=True, path_effects=pe, alpha=a_moist)
+                    self.__ax_skew.text(t, 300, f'{t0.m:.0f}', color=c_moist, fontsize=14, fontweight='bold', ha='center', va='center', rotation=angle, clip_on=True, path_effects=pe, alpha=a_moist + 0.2)
 
             # 3. Mix
             w_mixing = np.array([0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 2, 5, 10, 20, 30, 50]) * units('g/kg')
