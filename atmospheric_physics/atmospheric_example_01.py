@@ -58,7 +58,7 @@ class AtmosphericExample01:
         
         # 3. Range Slider
         self.createRangeSlider(
-            100, 1050, init=(200, 800),
+            100, 1050, init=(100, 1050),
             func=self.__on_pressure_changed,
             name='Pressure Range',
             tab=self.__tab2,
