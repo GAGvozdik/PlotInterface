@@ -24,7 +24,7 @@ class AtmosphericExample01:
         self.__active_line_index = -1
         self.__line_counter = 0
         self.__analytical_line_objs = [] 
-        self.__background_line_width = 0.4
+        self.__background_line_width = 0.7
         
         # 1. Группа радиокнопок
         self.createRadioGroup(
@@ -252,8 +252,8 @@ class AtmosphericExample01:
                     t_near = np.atleast_1d(mpcalc.moist_lapse(299 * units.hPa, t0, reference_pressure=ref_p).to('degC').m)[0]
                     p1 = self.__ax_skew.transData.transform((t, 300)); p2 = self.__ax_skew.transData.transform((t_near, 299))
                     angle = np.degrees(np.arctan2(p2[1]-p1[1], p2[0]-p1[0]))
-                    if angle > 90: angle -= 180
-                    elif angle < -90: angle += 180
+                    if angle > 90: angle += 180
+                    elif angle < -90: angle -= 180
                     self.__ax_skew.text(t, 300, f'{t0.m:.0f}', color=c_moist, fontsize=14, fontweight='bold', ha='center', va='center', rotation=angle, clip_on=True, path_effects=pe, alpha=a_moist + 0.2)
 
             # 3. Mix
