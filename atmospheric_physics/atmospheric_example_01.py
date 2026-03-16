@@ -266,15 +266,14 @@ class AtmosphericExample01:
 
         active_mode = self.__lines_data[self.__active_line_index]['mode']
         current_state = (active_mode, self.darkMode, self.__background_line_width, self.graphColor, self.__p_min_val)
-        
         if not hasattr(self, '_bg_state') or self._bg_state != current_state or getattr(self, '_force_refresh', False):
             figure.clear(); self._bg_state = current_state; self.__analytical_line_objs = [] 
             self.__skew = SkewT(figure, rotation=45); self.__ax_skew = self.__skew.ax
+            self.__ax_skew.set_aspect('auto', adjustable='datalim')
             self.updateAxesStyle(self.__ax_skew)
             self.__ax_skew.set_ylim(1050, self.__p_min_val); self.__ax_skew.set_xlim(-40, 80); self.__ax_skew.tick_params(axis='both', labelsize=15)
-            
+
             # Принудительное обновление для стабильности трансформаций
-            self.__ax_skew.apply_aspect()
             canvas = self.tabAtr(f'{self.__tab_name2}Canvas')
             canvas_ready = canvas and canvas.width() > 0 and canvas.height() > 0
             
@@ -296,12 +295,6 @@ class AtmosphericExample01:
             dry_lines = self.__skew.plot_dry_adiabats(t0=t0_dry, alpha=a_dry, linestyle='-', linewidth=self.__background_line_width*2.0)
             dry_lines.set_color(c_dry)
             
-            # Белые маркеры на концах (Dry)
-            t_ends = mpcalc.dry_lapse(p_min_unit, t0_dry, reference_pressure=ref_p).to('degC').m
-            valid = (t_ends >= x_min) & (t_ends <= x_max)
-            if any(valid):
-                self.__ax_skew.scatter(t_ends[valid], [self.__p_min_val]*sum(valid), facecolor='white', edgecolor='grey', linewidth=1.2, zorder=20, s=40, alpha=a_dry)
-
             for t0 in t0_dry:
                 t = np.atleast_1d(mpcalc.dry_lapse(200 * units.hPa, t0, reference_pressure=ref_p).to('degC').m)[0]
                 if x_min + 2 <= t <= x_max - 2:
@@ -322,12 +315,6 @@ class AtmosphericExample01:
             moist_lines = self.__skew.plot_moist_adiabats(t0=t0_moist, alpha=a_moist, linestyle='-', linewidth=self.__background_line_width*2.0)
             moist_lines.set_color(c_moist)
             
-            # Белые маркеры на концах (Moist)
-            t_ends = mpcalc.moist_lapse(p_min_unit, t0_moist, reference_pressure=ref_p).to('degC').m
-            valid = (t_ends >= x_min) & (t_ends <= x_max)
-            if any(valid):
-                self.__ax_skew.scatter(t_ends[valid], [self.__p_min_val]*sum(valid), facecolor='white', edgecolor='grey', linewidth=1.2, zorder=20, s=40, alpha=a_moist)
-
             for t0 in t0_moist:
                 t = np.atleast_1d(mpcalc.moist_lapse(300 * units.hPa, t0, reference_pressure=ref_p).to('degC').m)[0]
                 if x_min + 2 <= t <= x_max - 2:
@@ -348,12 +335,6 @@ class AtmosphericExample01:
             mix_lines = self.__skew.plot_mixing_lines(pressure=np.linspace(1050, 100, 65) * units.hPa, mixing_ratio=w_mixing, alpha=a_mix, linestyle='--', linewidth=self.__background_line_width*2.0)
             if mix_lines: mix_lines.set_color(c_mix)
             
-            # Белые маркеры на концах (Mix)
-            t_ends = mpcalc.dewpoint(mpcalc.vapor_pressure(p_min_unit, w_mixing)).to('degC').m
-            valid = (t_ends >= x_min) & (t_ends <= x_max)
-            if any(valid):
-                self.__ax_skew.scatter(t_ends[valid], [self.__p_min_val]*sum(valid), facecolor='white', edgecolor='grey', linewidth=1.2, zorder=20, s=40, alpha=a_mix)
-
             for w in w_mixing:
                 t = np.atleast_1d(mpcalc.dewpoint(mpcalc.vapor_pressure(500 * units.hPa, w)).to('degC').m)[0]
                 if x_min + 2 <= t <= x_max - 2:
@@ -381,9 +362,10 @@ class AtmosphericExample01:
 
         # Отрисовка ВСЕХ сохраненных линий из менеджера
         ref_p = 1000 * units.hPa
+        x_min, x_max = self.__ax_skew.get_xlim()
         for i, data in enumerate(self.__lines_data):
             mode = data['mode']
-            if mode == 'None': continue # Пропускаем, если текущая линия в режиме None
+            if mode == 'None': continue 
             
             p_min, p_max = data['p_range']
             p_line = np.linspace(p_max, p_min, 100) * units.hPa
@@ -397,7 +379,24 @@ class AtmosphericExample01:
                 elif mode == 'Isobar': 
                     t_line = np.linspace(p_min, p_max, 100) * units.degC
                     p_line = np.full_like(t_line.m, val) * units.hPa
-                    color = "#1C49AD"
+                    color = "#222222"
                 else: continue
+                
                 lines = self.__skew.plot(p_line, t_line, color, linewidth=4.0); self.__analytical_line_objs.append(lines[0])
+                
+                # Добавляем точки на концах линий (на пересечении с верхней границей или на конце линии)
+                if mode in ['Dry adiabat', 'Saturation Mixing Ratio', 'θe']:
+                    p_point = max(data['p_range'][0], self.__p_min_val)
+                    p_unit = p_point * units.hPa
+                    
+                    if mode == 'Dry adiabat':
+                        t_point = mpcalc.dry_lapse(p_unit, (val + 273.15) * units.kelvin, reference_pressure=ref_p).to('degC').m
+                    elif mode == 'Saturation Mixing Ratio':
+                        t_point = mpcalc.dewpoint(mpcalc.vapor_pressure(p_unit, val * units('g/kg'))).to('degC').m
+                    elif mode == 'θe':
+                        t_point = mpcalc.moist_lapse(p_unit, (val + 273.15) * units.kelvin, reference_pressure=ref_p).to('degC').m
+                    
+                    if x_min <= t_point <= x_max:
+                        sc = self.__ax_skew.scatter(t_point, p_point, facecolor='white', edgecolor='#333333', linewidth=1.5, s=80, zorder=30)
+                        self.__analytical_line_objs.append(sc)
             except: continue
