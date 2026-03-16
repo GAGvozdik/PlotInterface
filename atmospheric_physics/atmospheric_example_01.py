@@ -269,7 +269,7 @@ class AtmosphericExample01:
         if not hasattr(self, '_bg_state') or self._bg_state != current_state or getattr(self, '_force_refresh', False):
             figure.clear(); self._bg_state = current_state; self.__analytical_line_objs = [] 
             self.__skew = SkewT(figure, rotation=45); self.__ax_skew = self.__skew.ax
-            self.__ax_skew.set_aspect('auto', adjustable='datalim')
+            self.__ax_skew.set_aspect('auto')
             self.updateAxesStyle(self.__ax_skew)
             self.__ax_skew.set_ylim(1050, self.__p_min_val); self.__ax_skew.set_xlim(-40, 80); self.__ax_skew.tick_params(axis='both', labelsize=15)
 
@@ -384,19 +384,20 @@ class AtmosphericExample01:
                 
                 lines = self.__skew.plot(p_line, t_line, color, linewidth=4.0); self.__analytical_line_objs.append(lines[0])
                 
-                # Добавляем точки на концах линий (на пересечении с верхней границей или на конце линии)
+                # Добавляем точки на обоих концах линий
                 if mode in ['Dry adiabat', 'Saturation Mixing Ratio', 'θe']:
-                    p_point = max(data['p_range'][0], self.__p_min_val)
-                    p_unit = p_point * units.hPa
+                    p_top = max(data['p_range'][0], self.__p_min_val)
+                    p_bottom = min(data['p_range'][1], 1050)
                     
-                    if mode == 'Dry adiabat':
-                        t_point = mpcalc.dry_lapse(p_unit, (val + 273.15) * units.kelvin, reference_pressure=ref_p).to('degC').m
-                    elif mode == 'Saturation Mixing Ratio':
-                        t_point = mpcalc.dewpoint(mpcalc.vapor_pressure(p_unit, val * units('g/kg'))).to('degC').m
-                    elif mode == 'θe':
-                        t_point = mpcalc.moist_lapse(p_unit, (val + 273.15) * units.kelvin, reference_pressure=ref_p).to('degC').m
-                    
-                    if x_min <= t_point <= x_max:
-                        sc = self.__ax_skew.scatter(t_point, p_point, facecolor='white', edgecolor='#333333', linewidth=1.5, s=80, zorder=30)
+                    for p_val in [p_top, p_bottom]:
+                        p_unit = p_val * units.hPa
+                        if mode == 'Dry adiabat':
+                            t_point = mpcalc.dry_lapse(p_unit, (val + 273.15) * units.kelvin, reference_pressure=ref_p).to('degC').m
+                        elif mode == 'Saturation Mixing Ratio':
+                            t_point = mpcalc.dewpoint(mpcalc.vapor_pressure(p_unit, val * units('g/kg'))).to('degC').m
+                        elif mode == 'θe':
+                            t_point = mpcalc.moist_lapse(p_unit, (val + 273.15) * units.kelvin, reference_pressure=ref_p).to('degC').m
+                        
+                        sc = self.__ax_skew.scatter(t_point, p_val, facecolor='white', edgecolor='#333333', linewidth=1.2, s=60, zorder=35)
                         self.__analytical_line_objs.append(sc)
             except: continue
