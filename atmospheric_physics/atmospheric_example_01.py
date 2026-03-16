@@ -108,7 +108,7 @@ class AtmosphericExample01:
 
     def __add_line(self):
         self.__line_counter += 1
-        new_line = {'mode': 'None', 'val': 20.0, 'p_range': (200, 800), 'name': f"[{self.__line_counter:02d}] None"}
+        new_line = {'mode': 'None', 'val': 20.0, 'p_range': (100, 1050), 'name': f"[{self.__line_counter:02d}] None"}
         self.__lines_data.append(new_line)
         self.__list_widget.addItem(new_line['name'])
         self.__list_widget.setCurrentRow(len(self.__lines_data) - 1)
@@ -184,6 +184,9 @@ class AtmosphericExample01:
         if label: label.setText(f"{self.__background_line_width}")
         self.__draw_skewt()
 
+    def refresh_atmospheric_01(self):
+        self.__draw_skewt()
+
     def __update_slider_limits(self):
         if self.__active_line_index < 0: return
         slider = getattr(self, "Surface Temp slider", None)
@@ -209,9 +212,9 @@ class AtmosphericExample01:
             return
 
         active_mode = self.__lines_data[self.__active_line_index]['mode']
-        current_state = (active_mode, self.darkMode, self.__background_line_width)
+        current_state = (active_mode, self.darkMode, self.__background_line_width, self.graphColor)
         
-        if not hasattr(self, '_bg_state') or self._bg_state != current_state:
+        if not hasattr(self, '_bg_state') or self._bg_state != current_state or getattr(self, '_force_refresh', False):
             figure.clear(); self._bg_state = current_state; self.__analytical_line_objs = [] 
             self.__skew = SkewT(figure, rotation=45); self.__ax_skew = self.__skew.ax
             self.updateAxesStyle(self.__ax_skew)
@@ -229,7 +232,7 @@ class AtmosphericExample01:
                 a_iso, a_dry, a_mix, a_moist = (0.70 if active_mode == m else 0.30 for m in ['Isotherm', 'Dry adiabat', 'Saturation Mixing Ratio', 'θe'])
                 if active_mode == 'θe': a_moist = 0.7
                 
-            pe = [path_effects.withStroke(linewidth=self.__background_line_width*4, foreground=self.graphColor)]
+            bg_color = self.graphColor
             x_min, x_max = self.__ax_skew.get_xlim()
             c_dry, c_moist, c_mix = "orange", "#009F0B", "#18CE18"
 
@@ -250,7 +253,7 @@ class AtmosphericExample01:
                     
                     if angle > 90: angle -= 180
                     elif angle < -90: angle += 180
-                    self.__ax_skew.text(t, 200, f'{t0.m:.0f}', color=c_dry, fontsize=14, fontweight='bold', ha='center', va='center', rotation=angle, clip_on=True, path_effects=pe, alpha=a_dry)
+                    self.__ax_skew.text(t, 200, f'{t0.m:.0f}', color=c_dry, fontsize=14, fontweight='bold', ha='center', va='center', rotation=angle, clip_on=True, bbox=dict(facecolor=bg_color, edgecolor='none', pad=0.5), zorder=10, alpha=a_dry)
 
             # 2. Moist
             t0_moist = np.arange(-100, 100, 5) * units.degC
@@ -269,7 +272,7 @@ class AtmosphericExample01:
                         
                     if angle > 90: angle -= 180
                     elif angle < -90: angle += 180
-                    self.__ax_skew.text(t, 300, f'{t0.m:.0f}', color=c_moist, fontsize=14, fontweight='bold', ha='center', va='center', rotation=angle, clip_on=True, path_effects=pe, alpha=a_moist + 0.2)
+                    self.__ax_skew.text(t, 300, f'{t0.m:.0f}', color=c_moist, fontsize=14, fontweight='bold', ha='center', va='center', rotation=angle, clip_on=True, bbox=dict(facecolor=bg_color, edgecolor='none', pad=0.5), zorder=10, alpha=a_moist + 0.2)
 
             # 3. Mix
             w_mixing = np.array([0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 2, 5, 10, 20, 30, 50]) * units('g/kg')
@@ -289,7 +292,7 @@ class AtmosphericExample01:
                     if angle > 90: angle -= 180
                     elif angle < -90: angle += 180
                     txt = f'{w.m:.0g}' if w.m >= 0.01 else f'{w.m:.4f}'
-                    self.__ax_skew.text(t, 500, txt, color=c_mix, fontsize=14, fontweight='bold', ha='center', va='center', rotation=angle, clip_on=True, path_effects=pe, alpha=a_mix)
+                    self.__ax_skew.text(t, 500, txt, color=c_mix, fontsize=14, fontweight='bold', ha='center', va='center', rotation=angle, clip_on=True, bbox=dict(facecolor=bg_color, edgecolor='none', pad=0.5), zorder=10, alpha=a_mix)
             
             self.__ax_skew.grid(True, axis='x', color='#AD1C1C', linewidth=self.__background_line_width*1.5, alpha=a_iso)
             self.__ax_skew.grid(True, axis='y', color="#202020", linewidth=self.__background_line_width*1.5, alpha=0.3)

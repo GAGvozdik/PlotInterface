@@ -146,12 +146,17 @@ class PlotInterface(GraphObjects):
         """Переключение видимости бокового меню."""
         self.sidebar_widget.setVisible(not self.sidebar_widget.isVisible())
         
+    def refreshActiveTab(self):
+        """Переопределяется в дочерних классах для обновления контента."""
+        pass
+        
     def switchTheme(self):
         """Переключение тем оформления и синхронизация цветов графиков."""
         checked_button = self.themeGroup.checkedButton()
         if not checked_button:
             return
             
+        self._force_refresh = True # Установка флага для принудительной перерисовки
         theme_name = checked_button.text().lower()
         current_dir = Path(__file__).parent.parent.resolve()
         qss_path = current_dir / "styles" / f"{theme_name}Theme.qss"
@@ -167,11 +172,11 @@ class PlotInterface(GraphObjects):
             self.ticksWidth = 2.5
             self.darkMode = True
         else:
-            self.dividerColor = '#d6d6d6'   
+            self.dividerColor = '#FFFFFF'   
             self.windowColor = self.dividerColor
             self.gridColor = 'grey'
             self.widgetColor = 'black'
-            self.graphColor = '#d6d6d6'
+            self.graphColor = '#FFFFFF'
             self.ticksColor = 'black'
             self.ticksWidth = 1
             self.darkMode = False
@@ -197,6 +202,10 @@ class PlotInterface(GraphObjects):
                 # Перерисовываем холст
                 if canvas:
                     canvas.draw()
+
+        # Обновляем контент графиков (если реализовано в дочерних классах)
+        self.refreshActiveTab()
+        self._force_refresh = False # Сброс флага
 
         # Обновляем заголовок окна (Windows)
         if pywinstyles:

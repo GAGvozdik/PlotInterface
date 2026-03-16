@@ -49,6 +49,17 @@ class MainApp(AllExamples, AllSeismicExamples, AllThermoExamples, AllAtmospheric
         # 4. Загрузка начального режима
         self.change_mode()
 
+    def refreshActiveTab(self):
+        """Перенаправление обновления в активный миксин."""
+        checked_button = self.modeGroup.checkedButton()
+        if not checked_button:
+            return
+            
+        selected_text = checked_button.text()
+        if selected_text == "Atmospheric Physics":
+            if hasattr(self, 'refresh_atmospheric_01'):
+                self.refresh_atmospheric_01()
+
     def change_mode(self, button=None):
         """Переключение набора вкладок через методы унаследованных миксинов."""
         self.modeGroup.blockSignals(True)
