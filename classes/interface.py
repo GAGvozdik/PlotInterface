@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (
     QApplication, QWidget, QTabWidget, QPushButton, QVBoxLayout,
     QBoxLayout, QFileDialog, QMessageBox, QHBoxLayout, QLabel, QSlider,
     QGridLayout, QGroupBox, QDial, QSizePolicy, QSpacerItem, QMenu,
-    QRadioButton, QButtonGroup, QComboBox
+    QRadioButton, QButtonGroup, QComboBox, QScrollArea
 )
 
 try:
@@ -224,7 +224,7 @@ class PlotInterface(GraphObjects):
                 widget.setParent(None)
                 widget.deleteLater()
             
-    def createTab(self, name):
+    def createTab(self, name, columns=1):
         tab = QWidget()
         layout = QGridLayout()
         layout.setContentsMargins(10, 10, 10, 10)
@@ -238,10 +238,21 @@ class PlotInterface(GraphObjects):
         graphBox.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         setattr(self, f"{name}GraphBox", graphBox)
 
-        sliderBox = self.createBox(layout, "Sliders box", [0, 2])
-        sliderBox.setFixedWidth(300)
+        # Создаем область прокрутки для слайдеров
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scroll.setFixedWidth(300 * columns + 25) # Запас для полосы прокрутки
+        scroll.setStyleSheet("QScrollArea { border: none; background: transparent; }")
+        layout.addWidget(scroll, 0, 2)
+
+        sliderBox = self.createBox(None, "Sliders box", columns=columns)
+        sliderBox.layout().setAlignment(Qt.AlignTop)
+        sliderBox.setFixedWidth(300 * columns)
         sliderBox.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Expanding)
         setattr(self, f"{name}SliderBox", sliderBox)
+        
+        scroll.setWidget(sliderBox)
 
         figure, canvas = self.createFigure(name, graphBox)
         setattr(self, f"{name}Figure", figure)
@@ -265,7 +276,7 @@ class PlotInterface(GraphObjects):
         return getattr(self, f"{name}", None)
 
     def createSlider(self, min, max, tab, init=0, func='none', name='', label=False):
-        sliderBox = self.createBox(tab, name, size=['auto', 100], v=True)
+        sliderBox = self.createBox(tab, name, size=['auto', 110], v=True)
         sliderBox.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         slider = QSlider(Qt.Horizontal)
@@ -288,14 +299,14 @@ class PlotInterface(GraphObjects):
         self.addToBox(self.tabAtr(f'{tab.objectName()}SliderBox'), sliderBox)
         return sliderBox
 
-    def createRangeSlider(self, min, max, tab, init=(0, 100), func='none', name='', label=False):
+    def createRangeSlider(self, min, max, tab, init=(0, 110), func='none', name='', label=False):
         try:
             from superqt import QRangeSlider
         except ImportError:
             print("superqt is not installed. Falling back to regular sliders.")
             return None
 
-        sliderBox = self.createBox(tab, name, size=['auto', 100], v=True)
+        sliderBox = self.createBox(tab, name, size=['auto', 110], v=True)
         sliderBox.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         slider = QRangeSlider(Qt.Horizontal)
@@ -353,7 +364,7 @@ class PlotInterface(GraphObjects):
         return buttonGroup
 
     def createQDial(self, min, max, init, tab, func='none', name='', label=False):
-        dialBox = self.createBox(tab, name, size=['auto', 210])
+        dialBox = self.createBox(tab, name, size=['auto', 240])
         dialBox.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
         dial = QDial(self)
@@ -373,8 +384,9 @@ class PlotInterface(GraphObjects):
         self.addToBox(self.tabAtr(f'{tab.objectName()}SliderBox'), dialBox)
         return dialBox
 
-    def createBox(self, tab, title='', position=[], size=['none', 'none'], v=True):
+    def createBox(self, tab, title='', position=[], size=['none', 'none'], v=True, columns=1):
         box = QGroupBox(title)
+
         if isinstance(size[0], int) and isinstance(size[1], int):
             box.setFixedSize(size[0], size[1])
         elif size[0] == 'auto' and isinstance(size[1], int):
@@ -388,22 +400,59 @@ class PlotInterface(GraphObjects):
         if position:
             tab.addWidget(box, *position)
         else:
-            # Если позиция не указана, добавляем просто в лейаут родителя (для сайдбара)
             if hasattr(tab, "addWidget"):
                 tab.addWidget(box)
 
-        if v == True:
+        if columns > 1:
+            # Внешний layout для колонок
+            outer_layout = QHBoxLayout()
+            outer_layout.setContentsMargins(8, 8, 8, 8)
+            outer_layout.setSpacing(15)
+            outer_layout.setAlignment(Qt.AlignTop)
+
+            box._column_layouts = []
+            box._next_column = 0
+            box._columns = columns
+
+            for _ in range(columns):
+                col_layout = QVBoxLayout()
+                col_layout.setContentsMargins(0, 0, 0, 0)
+                col_layout.setSpacing(15)
+                col_layout.setAlignment(Qt.AlignTop)
+
+                outer_layout.addLayout(col_layout, 1)
+                box._column_layouts.append(col_layout)
+
+            layout = outer_layout
+
+        elif v:
             layout = QVBoxLayout()
+            layout.setContentsMargins(8, 8, 8, 8)
+            layout.setSpacing(15)
         else:
             layout = QHBoxLayout()
-        layout.setContentsMargins(5, 5, 5, 5)
-        layout.setSpacing(18)
+            layout.setContentsMargins(8, 8, 8, 8)
+            layout.setSpacing(15)
+            layout.setAlignment(Qt.AlignTop)
+
         box.setLayout(layout)
         return box
 
     def addToBox(self, box, widget):
         widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
-        box.layout().addWidget(widget)
+
+        # Если box многоколоночный — добавляем в одну из вертикальных колонок
+        if hasattr(box, "_column_layouts"):
+            col = box._next_column
+            box._column_layouts[col].addWidget(widget)
+
+            col += 1
+            if col >= box._columns:
+                col = 0
+            box._next_column = col
+
+        else:
+            box.layout().addWidget(widget)
 
     def updateAxesStyle(self, ax):
         ax.set_facecolor(self.graphColor)

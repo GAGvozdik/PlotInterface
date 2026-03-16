@@ -1,7 +1,7 @@
 import numpy as np
 from classes.interface import PlotInterface
 import matplotlib.pyplot as plt
-from PyQt5.QtWidgets import QListWidget, QPushButton, QHBoxLayout, QSizePolicy
+from PyQt5.QtWidgets import QListWidget, QPushButton, QHBoxLayout, QSizePolicy, QGridLayout, QVBoxLayout
 from PyQt5.QtCore import Qt
 import matplotlib.patheffects as path_effects
 
@@ -16,7 +16,7 @@ except ImportError:
 class AtmosphericExample01:
     def init_atmospheric_01(self):
         self.__tab_name2 = "01 Atm."
-        self.__tab2 = self.createTab(self.__tab_name2)
+        self.__tab2 = self.createTab(self.__tab_name2, columns=2)
         s_box = self.tabAtr(f"{self.__tab_name2}SliderBox")
         
         # Данные менеджера линий
@@ -59,7 +59,7 @@ class AtmosphericExample01:
         
         # Слайдер для вертикального масштаба
         self.createSlider(
-            100, 1000, init=100, 
+            100, 600, init=100, 
             func=self.__on_p_min_changed,
             name='Vertical Scale (P min)', 
             tab=self.__tab2,
@@ -110,8 +110,13 @@ class AtmosphericExample01:
                 if isinstance(w, QPushButton) and w.text() == "Load file": load_btn = w
         
         if save_btn and load_btn:
-            s_box.layout().removeWidget(save_btn); s_box.layout().removeWidget(load_btn)
-            s_box.layout().addStretch(1); s_box.layout().addWidget(save_btn); s_box.layout().addWidget(load_btn)
+            layout = s_box.layout()
+            if isinstance(layout, QVBoxLayout):
+                layout.removeWidget(save_btn); layout.removeWidget(load_btn)
+                layout.addStretch(1); layout.addWidget(save_btn); layout.addWidget(load_btn)
+            elif isinstance(layout, QGridLayout):
+                # Для сетки просто убедимся, что они в конце (они и так там будут)
+                pass
         
         self.__add_line()
         self.__draw_skewt()
@@ -280,12 +285,14 @@ class AtmosphericExample01:
             ref_p = 1000 * units.hPa
             p_min_unit = self.__p_min_val * units.hPa
             if active_mode == 'None':
-                a_iso = a_dry = a_mix = a_moist = a_isobar = 0.30
+                a_iso = a_dry = a_moist = a_isobar = 0.30
+                a_mix = 0.45
             else:
                 # Исправлена распаковка: теперь 5 переменных для 5 режимов
                 a_iso, a_dry, a_mix, a_moist, a_isobar = (0.70 if active_mode == m else 0.30 for m in ['Isotherm', 'Dry adiabat', 'Saturation Mixing Ratio', 'θe', 'Isobar'])
                 if active_mode == 'θe': a_moist = 0.7
-                
+                if active_mode != 'Saturation Mixing Ratio': a_mix = 0.45
+
             bg_color = self.graphColor
             x_min, x_max = self.__ax_skew.get_xlim()
             c_dry, c_moist, c_mix = "orange", "#009F0B", "#18CE18"
@@ -372,17 +379,26 @@ class AtmosphericExample01:
             val = data['val']
             
             try:
-                if mode == 'Isotherm': t_line = np.full_like(p_line.m, val) * units.degC; color = "#AD1C1C"
+                if mode == 'Isotherm': t_line = np.full_like(p_line.m, val) * units.degC; color = "#F33232"
                 elif mode == 'Dry adiabat': t_line = mpcalc.dry_lapse(p_line, (val + 273.15) * units.kelvin, reference_pressure=ref_p); color = "orange"
-                elif mode == 'Saturation Mixing Ratio': t_line = mpcalc.dewpoint(mpcalc.vapor_pressure(p_line, val * units('g/kg'))); color = "#18CE18"
-                elif mode == 'θe': t_line = mpcalc.moist_lapse(p_line, (val + 273.15) * units.kelvin, reference_pressure=ref_p); color = "#009F0B"
+                elif mode == 'Saturation Mixing Ratio': t_line = mpcalc.dewpoint(mpcalc.vapor_pressure(p_line, val * units('g/kg'))); color = "#0B950B"
+                elif mode == 'θe': t_line = mpcalc.moist_lapse(p_line, (val + 273.15) * units.kelvin, reference_pressure=ref_p); color = "#008109"
                 elif mode == 'Isobar': 
                     t_line = np.linspace(p_min, p_max, 100) * units.degC
                     p_line = np.full_like(t_line.m, val) * units.hPa
-                    color = "#222222"
+                    color = "#404040"
                 else: continue
                 
-                lines = self.__skew.plot(p_line, t_line, color, linewidth=4.0); self.__analytical_line_objs.append(lines[0])
+                if mode == 'Isotherm':
+                    lines = self.__skew.plot(p_line, t_line, color, linewidth=4.0); self.__analytical_line_objs.append(lines[0])
+                elif mode == 'Dry adiabat':
+                    lines = self.__skew.plot(p_line, t_line, color, linewidth=4.0); self.__analytical_line_objs.append(lines[0])
+                elif mode == 'Saturation Mixing Ratio':
+                    lines = self.__skew.plot(p_line, t_line, color, linewidth=4.0); self.__analytical_line_objs.append(lines[0])
+                elif mode == 'θe':
+                    lines = self.__skew.plot(p_line, t_line, color, linewidth=4.0); self.__analytical_line_objs.append(lines[0])
+                elif mode == 'Isobar':
+                    lines = self.__skew.plot(p_line, t_line, color, linewidth=4.0); self.__analytical_line_objs.append(lines[0])
                 
                 # Добавляем точки на обоих концах линий
                 if mode in ['Dry adiabat', 'Saturation Mixing Ratio', 'θe']:
@@ -398,6 +414,6 @@ class AtmosphericExample01:
                         elif mode == 'θe':
                             t_point = mpcalc.moist_lapse(p_unit, (val + 273.15) * units.kelvin, reference_pressure=ref_p).to('degC').m
                         
-                        sc = self.__ax_skew.scatter(t_point, p_val, facecolor='white', edgecolor='#333333', linewidth=1.2, s=60, zorder=35)
+                        sc = self.__ax_skew.scatter(t_point, p_val, facecolor='white', edgecolor='#333333', linewidth=2.2, s=85, zorder=35)
                         self.__analytical_line_objs.append(sc)
             except: continue

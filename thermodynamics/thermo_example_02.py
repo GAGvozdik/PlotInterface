@@ -186,6 +186,12 @@ class ThermoExample02:
         self.ax_ro_02 = fig.add_subplot(gs[1, 2])
         self.ax_lmbd_02 = fig.add_subplot(gs[2, 2])
         
+        self.ax_t_02.set_title("Temperature Field", fontsize=18)
+        self.ax_slices_02.set_title("Horizontal Midline Profiles", fontsize=18)
+        self.ax_c_02.set_title("Heat Capacity", fontsize=18)
+        self.ax_ro_02.set_title("Density", fontsize=18)
+        self.ax_lmbd_02.set_title("Thermal Conductivity", fontsize=18)
+        
         self.thermo_02_axes = {
             'T': self.ax_t_02, 'C': self.ax_c_02, 
             'Ro': self.ax_ro_02, 'Lmbd': self.ax_lmbd_02, 
