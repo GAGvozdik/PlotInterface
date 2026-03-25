@@ -111,7 +111,7 @@ class PlotInterface(GraphObjects):
         self.toggle_sidebar_btn = QPushButton("☰")
         self.toggle_sidebar_btn.setFixedSize(50, 50)
         self.toggle_sidebar_btn.setFlat(True)
-        self.toggle_sidebar_btn.setStyleSheet("""
+        self.toggle_sidebar_btn.setStyleSheet('''
             QPushButton {
                 font-size: 24px;
                 padding: 0px;
@@ -123,7 +123,7 @@ class PlotInterface(GraphObjects):
             QPushButton:hover {
                 background-color: rgba(110, 110, 110, 50);
             }
-        """)
+        ''')
         self.toggle_sidebar_btn.clicked.connect(self.toggle_sidebar)
 
         self.tabs = QTabWidget()
@@ -143,15 +143,15 @@ class PlotInterface(GraphObjects):
         self.fileName = None
 
     def toggle_sidebar(self):
-        """Переключение видимости бокового меню."""
+        # """Переключение видимости бового меню."""
         self.sidebar_widget.setVisible(not self.sidebar_widget.isVisible())
         
     def refreshActiveTab(self):
-        """Переопределяется в дочерних классах для обновления контента."""
+        # """Переопределяется в дочерних классах для обновления контента."""
         pass
         
     def switchTheme(self):
-        """Переключение тем оформления и синхронизация цветов графиков."""
+        # """Переключение тем оформления и синхронизация цветов графиков."""
         checked_button = self.themeGroup.checkedButton()
         if not checked_button:
             return
@@ -229,12 +229,17 @@ class PlotInterface(GraphObjects):
         layout = QGridLayout()
         layout.setContentsMargins(10, 10, 10, 10)
         layout.setSpacing(5)
+        # Устанавливаем растяжение для строки с графиком
+        layout.setRowStretch(0, 1)
+        layout.setColumnStretch(0, 1)
+        layout.setColumnStretch(1, 1) # Дополнительно для колонок графика
+        
         tab.setLayout(layout)
         self.tabs.addTab(tab, name)
         layout.setObjectName(name)
         setattr(self, name, layout)
 
-        graphBox = self.createBox(layout, "Graph box", [0, 0, 0, 2])
+        graphBox = self.createBox(layout, "Graph box", [0, 0, 1, 2])
         graphBox.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         setattr(self, f"{name}GraphBox", graphBox)
 
@@ -322,8 +327,6 @@ class PlotInterface(GraphObjects):
         # Сброс стилей, чтобы избежать скрытия ползунков глобальными QSS
         slider.setStyleSheet("QRangeSlider { background: transparent; }")
         
-        print(f"DEBUG: Created RangeSlider '{name}' -> {type(slider)} with value {slider.value()}")
-        
         # Улучшенная визуализация для superqt
         try:
             slider.setHandleLabelVisible(True)
@@ -403,12 +406,20 @@ class PlotInterface(GraphObjects):
             if hasattr(tab, "addWidget"):
                 tab.addWidget(box)
 
+        # Основной лейаут бокса всегда вертикальный для поддержки spanning-виджетов
+        main_layout = QVBoxLayout()
+        main_layout.setContentsMargins(8, 8, 8, 8)
+        main_layout.setSpacing(15)
+        main_layout.setAlignment(Qt.AlignTop)
+        box.setLayout(main_layout)
+
         if columns > 1:
-            # Внешний layout для колонок
-            outer_layout = QHBoxLayout()
-            outer_layout.setContentsMargins(8, 8, 8, 8)
-            outer_layout.setSpacing(15)
-            outer_layout.setAlignment(Qt.AlignTop)
+            # Контейнер для колонок
+            col_container = QHBoxLayout()
+            col_container.setContentsMargins(0, 0, 0, 0)
+            col_container.setSpacing(15)
+            col_container.setAlignment(Qt.AlignTop)
+            main_layout.addLayout(col_container)
 
             box._column_layouts = []
             box._next_column = 0
@@ -420,22 +431,18 @@ class PlotInterface(GraphObjects):
                 col_layout.setSpacing(15)
                 col_layout.setAlignment(Qt.AlignTop)
 
-                outer_layout.addLayout(col_layout, 1)
+                col_container.addLayout(col_layout, 1)
                 box._column_layouts.append(col_layout)
 
-            layout = outer_layout
+        elif not v:
+            # Если колонка одна и нужен горизонтальный вид — пересоздаем лейаут
+            h_layout = QHBoxLayout()
+            h_layout.setContentsMargins(0, 0, 0, 0)
+            h_layout.setSpacing(15)
+            h_layout.setAlignment(Qt.AlignTop)
+            main_layout.addLayout(h_layout)
+            box._internal_h_layout = h_layout
 
-        elif v:
-            layout = QVBoxLayout()
-            layout.setContentsMargins(8, 8, 8, 8)
-            layout.setSpacing(15)
-        else:
-            layout = QHBoxLayout()
-            layout.setContentsMargins(8, 8, 8, 8)
-            layout.setSpacing(15)
-            layout.setAlignment(Qt.AlignTop)
-
-        box.setLayout(layout)
         return box
 
     def addToBox(self, box, widget):
@@ -450,7 +457,8 @@ class PlotInterface(GraphObjects):
             if col >= box._columns:
                 col = 0
             box._next_column = col
-
+        elif hasattr(box, "_internal_h_layout"):
+            box._internal_h_layout.addWidget(widget)
         else:
             box.layout().addWidget(widget)
 

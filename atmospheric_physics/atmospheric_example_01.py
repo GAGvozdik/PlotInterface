@@ -27,16 +27,8 @@ class AtmosphericExample01:
         self.__background_line_width = 0.7
         self.__p_min_val = 100
         
-        # 1. Группа радиокнопок
-        self.createRadioGroup(
-            ['None', 'Dry adiabat', 'Saturation Mixing Ratio', 'θe', 'Isotherm', 'Isobar'],
-            tab=self.__tab2,
-            func=self.__on_mode_changed,
-            name='Isolines'
-        )
-        
-        # 2. Одиночный слайдер
-        self.createSlider(
+        # 1. Основные слайдеры (ПЕРЕНЕСЕНЫ В НАЧАЛО И СДЕЛАНЫ ПОЛНОШИРИННЫМИ)
+        temp_box = self.createSlider(
             -200, 1500, init=200, 
             func=self.__on_param_changed,
             name='Surface Temp', 
@@ -44,37 +36,49 @@ class AtmosphericExample01:
             label=True
         )
 
-        # 2. Толщина линий
-        lw_slider_box = self.createSlider(
+        lw_box = self.createSlider(
             1, 15, init=int(self.__background_line_width * 10), 
             func=self.__on_background_line_width_changed,
             name='Background LineWidth', 
             tab=self.__tab2,
             label=True
         )
-        self.addToBox(s_box, lw_slider_box)
-        label = self.tabAtr("Background LineWidth Slider Label")
-        if label: label.setText(f"{self.__background_line_width}")
-        # -----------------------
-        
-        # Слайдер для вертикального масштаба
-        self.createSlider(
-            100, 600, init=100, 
+
+        vs_box = self.createSlider(
+            1, 6, init=1, 
             func=self.__on_p_min_changed,
             name='Vertical Scale (P min)', 
             tab=self.__tab2,
             label=True
         )
 
-        # 3. Range Slider
-        self.createRangeSlider(
+        # 3. Range Slider (СДЕЛАН ПОЛНОШИРИННЫМИ)
+        pr_box = self.createRangeSlider(
             100, 1050, init=(100, 1050),
             func=self.__on_pressure_changed,
             name='Pressure Range',
             tab=self.__tab2,
             label=True
         )
+        
+        # Вставляем их в основной вертикальный лейаут над колонками (они будут растянуты на всю ширину s_box)
+        s_box.layout().insertWidget(0, temp_box)
+        s_box.layout().insertWidget(1, lw_box)
+        s_box.layout().insertWidget(2, vs_box)
+        s_box.layout().insertWidget(3, pr_box)
 
+        label = self.tabAtr("Background LineWidth Slider Label")
+        if label: label.setText(f"{self.__background_line_width}")
+        # -----------------------
+
+        # 2. Группа радиокнопок
+        self.createRadioGroup(
+            ['None', 'Dry adiabat', 'Saturation Mixing Ratio', 'θe', 'Isotherm', 'Isobar'],
+            tab=self.__tab2,
+            func=self.__on_mode_changed,
+            name='Isolines'
+        )
+        
         # 4. Блок МЕНЕДЖЕРА ЛИНИЙ
         self.__manager_box = self.createBox(self.__tab2, "LINES MANAGER", size=['auto', 300])
         self.__manager_box.layout().setContentsMargins(10, 10, 10, 10)
@@ -114,9 +118,6 @@ class AtmosphericExample01:
             if isinstance(layout, QVBoxLayout):
                 layout.removeWidget(save_btn); layout.removeWidget(load_btn)
                 layout.addStretch(1); layout.addWidget(save_btn); layout.addWidget(load_btn)
-            elif isinstance(layout, QGridLayout):
-                # Для сетки просто убедимся, что они в конце (они и так там будут)
-                pass
         
         self.__add_line()
         self.__draw_skewt()
@@ -216,9 +217,9 @@ class AtmosphericExample01:
         self.__draw_skewt()
 
     def __on_p_min_changed(self, val):
-        self.__p_min_val = float(val)
+        self.__p_min_val = float(100 * val)
         label = self.tabAtr("Vertical Scale (P min) Slider Label")
-        if label: label.setText(f"{val} hPa")
+        if label: label.setText(f"{100 * val} hPa")
         self.__draw_skewt()
 
     def refresh_atmospheric_01(self):
@@ -240,6 +241,12 @@ class AtmosphericExample01:
                 
             is_none = (mode == 'None')
             slider.setEnabled(not is_none)
+            
+            # Динамическая стилизация
+            slider.setProperty("active", "false" if is_none else "true")
+            slider.style().unpolish(slider)
+            slider.style().polish(slider)
+            
             if r_slider: r_slider.setEnabled(not is_none)
             
             if mode == 'Saturation Mixing Ratio': slider.setRange(0, 10000)
@@ -276,6 +283,10 @@ class AtmosphericExample01:
         if not hasattr(self, '_bg_state') or self._bg_state != current_state or getattr(self, '_force_refresh', False):
             figure.clear()
             self._bg_state = current_state
+            
+            # Форсируем растяжение графика на всё пространство
+            figure.subplots_adjust(left=0.08, right=0.98, top=0.95, bottom=0.08)
+            
             self.__skew = SkewT(figure, rotation=45)
             self.__ax_skew = self.__skew.ax
             self.__ax_skew.set_aspect('auto')

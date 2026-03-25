@@ -1,6 +1,6 @@
 import sys
 import numpy as np
-from PyQt5.QtWidgets import QMainWindow, QWidget, QTabWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QSlider, QGridLayout, QGroupBox, QDial
+from PyQt5.QtWidgets import QMainWindow, QWidget, QTabWidget, QPushButton, QVBoxLayout, QHBoxLayout, QLabel, QSlider, QGridLayout, QGroupBox, QDial, QSizePolicy
 from PyQt5.QtCore import Qt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure 
@@ -15,14 +15,14 @@ class GraphObjects(QMainWindow):
         super().__init__()  
 
     def createFigure(self, name, parentBox):
-        figure = plt.figure()
+        figure = plt.figure(tight_layout=True)
         # Задача 3: Синхронизация фона с темой
         figure.patch.set_facecolor(getattr(self, 'windowColor', '#2E2E2E'))
-        figure.subplots_adjust(wspace=0.3, hspace=0.3)
-
+        
         canvas = FigureCanvas(figure)
         # Убираем жесткий фон QSS, чтобы видеть patch фигуры
         canvas.setStyleSheet("background-color: transparent;")
+        canvas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         parentBox.layout().addWidget(canvas)
         return figure, canvas
