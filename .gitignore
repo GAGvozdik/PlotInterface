@@ -1,6 +1,8 @@
 # Virtual Environment
 workEnv/
 
+thermodynamics/theory/
+
 # Thermodynamics raw data dumps
 thermodynamics/t.txt
 thermodynamics/c.txt
@@ -16,6 +18,8 @@ __pycache__/
 test.py
 classes/__pycache__/
 thermodynamics/__pycache__/
+seismic_examples/__pycache__/
+geostatistics/__pycache__/
 examples/
 # C extensions
 *.so
