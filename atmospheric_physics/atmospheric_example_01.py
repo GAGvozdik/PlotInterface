@@ -54,12 +54,13 @@ class AtmosphericExample01:
 
         # 3. Range Slider (СДЕЛАН ПОЛНОШИРИННЫМИ)
         pr_box = self.createRangeSlider(
-            100, 1050, init=(100, 1050),
+            20, 210, init=(20, 210),
             func=self.__on_pressure_changed,
             name='Pressure Range',
             tab=self.__tab2,
             label=True
         )
+        self.tabAtr("Pressure Range Slider Label").setText(f"{20 * 5} - {210 * 5} hPa")
         
         # Вставляем их в основной вертикальный лейаут над колонками (они будут растянуты на всю ширину s_box)
         s_box.layout().insertWidget(0, temp_box)
@@ -160,6 +161,7 @@ class AtmosphericExample01:
         r_slider = self.tabAtr("Pressure Range slider")
         if r_slider:
             r_slider.blockSignals(True); r_slider.setValue(data['p_range']); r_slider.blockSignals(False)
+            print('__on_line_selected = ', data['p_range'])
         self.__draw_skewt()
 
     def __on_mode_changed(self, button):
@@ -202,12 +204,13 @@ class AtmosphericExample01:
 
     def __on_pressure_changed(self, val):
         if self.__active_line_index < 0: return
-        self.__lines_data[self.__active_line_index]['p_range'] = val
+        self.__lines_data[self.__active_line_index]['p_range'] = [val[0] * 5, val[1] * 5]
         label = self.tabAtr("Pressure Range Slider Label")
         if label:
             mode = self.__lines_data[self.__active_line_index]['mode']
             unit = "°C" if mode == "Isobar" else "hPa"
-            label.setText(f"{val[0]} - {val[1]} {unit}")
+            label.setText(f"{val[0] * 5} - {val[1] * 5} {unit}")
+            print('__on_pressure_changed = ', val)
         self.__draw_skewt()
 
     def __on_background_line_width_changed(self, val):
@@ -250,7 +253,7 @@ class AtmosphericExample01:
             if r_slider: r_slider.setEnabled(not is_none)
             
             if mode == 'Saturation Mixing Ratio': slider.setRange(0, 10000)
-            elif mode == 'Isobar': slider.setRange(100, 1050)
+            elif mode == 'Isobar': slider.setRange(20, 210)
             elif mode == 'Dry adiabat': slider.setRange(-200, 1500)
             elif mode == 'θe': slider.setRange(-200, 650)
             else: slider.setRange(-80, 50)
@@ -264,11 +267,12 @@ class AtmosphericExample01:
                     self.__lines_data[self.__active_line_index]['p_range'] = (-40, 40)
                     r_slider.setValue((-40, 40))
             else:
-                r_slider.setRange(100, 1050)
+                r_slider.setRange(20, 210)
                 if self.__lines_data[self.__active_line_index]['p_range'][0] < 100:
-                    self.__lines_data[self.__active_line_index]['p_range'] = (100, 1050)
-                    r_slider.setValue((100, 1050))
+                    self.__lines_data[self.__active_line_index]['p_range'] = (20, 210)
+                    r_slider.setValue((20, 210))
             r_slider.blockSignals(False)
+        # print('__update_slider_limits = ', r_slider.value)
 
     @PlotInterface.canvasDraw(tab="01 Atm.")
     def __draw_skewt(self):
@@ -381,10 +385,24 @@ class AtmosphericExample01:
                 if angle > 90: angle -= 180
                 elif angle < -90: angle += 180
                 txt = f'{w.m:.0g}' if w.m >= 0.01 else f'{w.m:.4f}'
-                self.__ax_skew.text(t, 500, txt, color=c_mix, fontsize=14, fontweight='bold', ha='center', va='center', rotation=angle, clip_on=True, bbox=dict(facecolor=bg_color, edgecolor='none', pad=0.5), zorder=10, alpha=a_mix)
+                self.__ax_skew.text(
+                    t, 
+                    500, 
+                    txt, 
+                    color=c_mix, 
+                    fontsize=14, 
+                    fontweight='bold', 
+                    ha='center', 
+                    va='center', 
+                    rotation=angle, 
+                    clip_on=True, 
+                    bbox=dict(facecolor=bg_color, edgecolor='none', pad=0.5), 
+                    zorder=10, 
+                    alpha=a_mix
+                )
         
         self.__ax_skew.grid(True, axis='x', color='#AD1C1C', linewidth=self.__background_line_width*1.5, alpha=a_iso)
-        self.__ax_skew.grid(True, axis='y', color="#202020", linewidth=self.__background_line_width*1.5, alpha=a_isobar if active_mode == 'Isobar' else 0.3)
+        self.__ax_skew.grid(True, axis='y', color="#131313", linewidth=self.__background_line_width*1.5, alpha=a_isobar if active_mode == 'Isobar' else 0.3)
         self.__ax_skew.set_xlabel('Temperature (°C)', fontsize=20); self.__ax_skew.set_ylabel('Pressure (hPa)', fontsize=20)
 
     def __draw_analytical_lines(self):
@@ -396,7 +414,7 @@ class AtmosphericExample01:
             p_min, p_max = data['p_range']
             p_line = np.linspace(p_max, p_min, 100) * units.hPa
             val = data['val']
-            
+            print('__draw_analytical_lines = ', val)
             try:
                 if mode == 'Isotherm': t_line = np.full_like(p_line.m, val) * units.degC; color = "#F33232"
                 elif mode == 'Dry adiabat': t_line = mpcalc.dry_lapse(p_line, (val + 273.15) * units.kelvin, reference_pressure=ref_p); color = "orange"
