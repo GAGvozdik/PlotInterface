@@ -49,7 +49,9 @@ class AtmosphericExample01:
             func=self.__on_p_min_changed,
             name='Vertical Scale (P min)', 
             tab=self.__tab2,
-            label=True
+            label=True,
+            isTicks=True,
+            ticksInterval=1
         )
 
         # 3. Range Slider (СДЕЛАН ПОЛНОШИРИННЫМИ)
@@ -189,7 +191,7 @@ class AtmosphericExample01:
         if self.__active_line_index < 0: return
         mode = self.__lines_data[self.__active_line_index]['mode']
         if mode == 'Saturation Mixing Ratio': actual_val = 10**(-4 + (val/10000.0) * (np.log10(50) - (-4)))
-        elif mode == 'Isobar': actual_val = float(val)
+        elif mode == 'Isobar': actual_val = float(val*5)
         elif mode in ['Dry adiabat', 'θe']: actual_val = val / 10.0
         else: actual_val = float(val)
         self.__lines_data[self.__active_line_index]['val'] = actual_val
@@ -204,12 +206,14 @@ class AtmosphericExample01:
 
     def __on_pressure_changed(self, val):
         if self.__active_line_index < 0: return
-        self.__lines_data[self.__active_line_index]['p_range'] = [val[0] * 5, val[1] * 5]
+        mode = self.__lines_data[self.__active_line_index]['mode']
+        step = 5
+        if mode == 'Isobar': step = 1
+        self.__lines_data[self.__active_line_index]['p_range'] = [val[0] * step, val[1] * step]
         label = self.tabAtr("Pressure Range Slider Label")
         if label:
-            mode = self.__lines_data[self.__active_line_index]['mode']
             unit = "°C" if mode == "Isobar" else "hPa"
-            label.setText(f"{val[0] * 5} - {val[1] * 5} {unit}")
+            label.setText(f"{val[0] * step} - {val[1] * step} {unit}")
             print('__on_pressure_changed = ', val)
         self.__draw_skewt()
 
@@ -250,7 +254,12 @@ class AtmosphericExample01:
             slider.style().unpolish(slider)
             slider.style().polish(slider)
             
-            if r_slider: r_slider.setEnabled(not is_none)
+            if r_slider: 
+                r_slider.setEnabled(not is_none)
+                # Установка свойства и обновление стиля для RangeSlider
+                r_slider.setProperty("active", "false" if is_none else "true")
+                r_slider.style().unpolish(r_slider)
+                r_slider.style().polish(r_slider)
             
             if mode == 'Saturation Mixing Ratio': slider.setRange(0, 10000)
             elif mode == 'Isobar': slider.setRange(20, 210)
@@ -418,12 +427,12 @@ class AtmosphericExample01:
             try:
                 if mode == 'Isotherm': t_line = np.full_like(p_line.m, val) * units.degC; color = "#F33232"
                 elif mode == 'Dry adiabat': t_line = mpcalc.dry_lapse(p_line, (val + 273.15) * units.kelvin, reference_pressure=ref_p); color = "orange"
-                elif mode == 'Saturation Mixing Ratio': t_line = mpcalc.dewpoint(mpcalc.vapor_pressure(p_line, val * units('g/kg'))); color = "#0B950B"
+                elif mode == 'Saturation Mixing Ratio': t_line = mpcalc.dewpoint(mpcalc.vapor_pressure(p_line, val * units('g/kg'))); color = "#2CB12C"
                 elif mode == 'θe': t_line = mpcalc.moist_lapse(p_line, (val + 273.15) * units.kelvin, reference_pressure=ref_p); color = "#008109"
                 elif mode == 'Isobar': 
                     t_line = np.linspace(p_min, p_max, 100) * units.degC
                     p_line = np.full_like(t_line.m, val) * units.hPa
-                    color = "#404040"
+                    color = "#242424"
                 else: continue
                 
                 lines = self.__skew.plot(p_line, t_line, color, linewidth=4.0)

@@ -4,17 +4,61 @@ import numpy as np
 from PyQt5.QtCore import Qt, QDir
 from .graphObjects import GraphObjects
 from pathlib import Path
+from PyQt5.QtGui import QPainter, QPen, QColor
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QTabWidget, QPushButton, QVBoxLayout,
     QBoxLayout, QFileDialog, QMessageBox, QHBoxLayout, QLabel, QSlider,
     QGridLayout, QGroupBox, QDial, QSizePolicy, QSpacerItem, QMenu,
-    QRadioButton, QButtonGroup, QComboBox, QScrollArea
+    QRadioButton, QButtonGroup, QComboBox, QScrollArea, QStyleFactory,
+    QStyle, QStyleOptionSlider
 )
 
 try:
     import pywinstyles
 except ImportError:
     pywinstyles = None
+
+class TickSlider(QSlider):
+    def __init__(self, orientation, parent=None):
+        super().__init__(orientation, parent)
+        self._ticks_color = QColor("#AAAAAA") 
+
+    def setTicksColor(self, color_str):
+        self._ticks_color = QColor(color_str)
+        self.update()
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        if self.tickPosition() == QSlider.NoTicks:
+            return
+
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.Antialiasing)
+        pen = QPen(self._ticks_color, 2)
+        painter.setPen(pen)
+
+        opt = QStyleOptionSlider()
+        self.initStyleOption(opt)
+        gr = self.style().subControlRect(QStyle.CC_Slider, opt, QStyle.SC_SliderGroove, self)
+        handle = self.style().subControlRect(QStyle.CC_Slider, opt, QStyle.SC_SliderHandle, self)
+
+        interval = self.tickInterval()
+        if interval <= 0: interval = 1
+        
+        min_v, max_v = self.minimum(), self.maximum()
+        if max_v <= min_v: return
+
+        # Центрирование делений относительно дорожки
+        for i in range(min_v, max_v + 1, interval):
+            ratio = (i - min_v) / (max_v - min_v)
+            # Учитываем, что центр ручки смещается от края до края
+            x = gr.left() + handle.width()//2 + ratio * (gr.width() - handle.width())
+            
+            # Рисуем деления сверху и снизу
+            painter.drawLine(int(x), gr.top() - 5, int(x), gr.top() - 12)
+            painter.drawLine(int(x), gr.bottom() + 5, int(x), gr.bottom() + 12)
+        
+        painter.end()
 
 class PlotInterface(GraphObjects):
     def __init__(self):
@@ -203,6 +247,10 @@ class PlotInterface(GraphObjects):
                 if canvas:
                     canvas.draw()
 
+        # Обновляем цвет делений на всех кастомных слайдерах
+        for slider in self.findChildren(TickSlider):
+            slider.setTicksColor(self.ticksColor)
+
         # Обновляем контент графиков (если реализовано в дочерних классах)
         self.refreshActiveTab()
         self._force_refresh = False # Сброс флага
@@ -280,15 +328,32 @@ class PlotInterface(GraphObjects):
     def tabAtr(self, name):
         return getattr(self, f"{name}", None)
 
-    def createSlider(self, min, max, tab, init=0, func='none', name='', label=False):
-        sliderBox = self.createBox(tab, name, size=['auto', 110], v=True)
+    def createSlider(self, min, max, tab, init=0, func='none', name='', label=False, isTicks=False, ticksInterval=0):
+        # Если есть деления, увеличиваем высоту бокса со 110 до 130
+        box_height = 130 if isTicks else 110
+        sliderBox = self.createBox(tab, name, size=['auto', box_height], v=True)
         sliderBox.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
 
-        slider = QSlider(Qt.Horizontal)
+        # Используем TickSlider вместо QSlider
+        slider = TickSlider(Qt.Horizontal)
         slider.setMinimum(min)
         slider.setMaximum(max)
         slider.setValue(init)
-        slider.setFixedHeight(40)
+        
+        # Если есть деления, увеличиваем высоту слайдера с 40 до 60
+        slider_height = 60 if isTicks else 40
+        slider.setFixedHeight(slider_height)
+        
+        if isTicks: 
+            slider.setProperty("hasTicks", True)
+            slider.setTickPosition(QSlider.TicksBothSides)
+            slider.setTickInterval(ticksInterval)
+            # Инициализируем цвет делений из текущих настроек интерфейса
+            slider.setTicksColor(self.ticksColor)
+
+        # Применяем изменения стиля для динамических свойств
+        slider.style().unpolish(slider)
+        slider.style().polish(slider)
 
         if func != 'none':
             slider.valueChanged.connect(func)
