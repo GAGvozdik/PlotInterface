@@ -43,7 +43,7 @@ class AtmosphericExample01:
             tab=self.__tab2,
             label=True,
             isTicks=True,
-            ticksInterval=0.1
+            ticksInterval=1
         )
 
         vs_box = self.createSlider(
