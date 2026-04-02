@@ -15,6 +15,10 @@ except ImportError:
 
 class AtmosphericExample01:
     def init_atmospheric_01(self):
+        # Принудительно устанавливаем стиль Fusion для стабильности UI и Snapping
+        from PyQt5.QtWidgets import QApplication, QStyleFactory
+        QApplication.setStyle(QStyleFactory.create("Fusion"))
+
         self.__tab_name2 = "01 Atm."
         self.__tab2 = self.createTab(self.__tab_name2, columns=2)
         s_box = self.tabAtr(f"{self.__tab_name2}SliderBox")
@@ -127,6 +131,78 @@ class AtmosphericExample01:
         self.__add_line()
         self.__draw_skewt()
 
+    def __calculate_val_for_point(self, mode, t, p):
+        """Возвращает значение 'val', определяющее линию данного типа, проходящую через (t, p)."""
+        if not METPY_AVAILABLE: return t
+        
+        t_u = t * units.degC
+        p_u = p * units.hPa
+        ref_p = 1000 * units.hPa
+        
+        try:
+            if mode == 'Isotherm':
+                return float(t)
+            elif mode == 'Isobar':
+                return float(p)
+            elif mode == 'Dry adiabat':
+                # Находим температуру этой адиабаты на 1000 гПа
+                theta = mpcalc.potential_temperature(p_u, t_u)
+                return float(theta.to('degC').m)
+            elif mode == 'Saturation Mixing Ratio':
+                # Находим отношение смеси в этой точке
+                es = mpcalc.saturation_vapor_pressure(t_u)
+                w = mpcalc.mixing_ratio(es, p_u)
+                return float(w.to('g/kg').m)
+            elif mode == 'θe':
+                # Для влажной адиабаты находим температуру, которую она имеет на 1000 гПа
+                # MetPy's moist_lapse(p, t, ref_p) дает температуру на p, стартуя с t на ref_p.
+                # Чтобы найти t на 1000 гПа, мы "спускаемся" или "поднимаемся" по влажной адиабате от (t, p) до 1000.
+                t_at_1000 = mpcalc.moist_lapse(ref_p, t_u, reference_pressure=p_u)
+                return float(t_at_1000.to('degC').m)
+        except:
+            return t
+        return t
+
+    def __get_all_snap_points(self):
+        """Собирает список (T, P) всех концов всех линий, кроме активной."""
+        points = []
+        ref_p = 1000 * units.hPa
+        
+        for i, data in enumerate(self.__lines_data):
+            if i == self.__active_line_index or data['mode'] == 'None':
+                continue
+            
+            mode = data['mode']
+            val = data['val']
+            p_range = data['p_range']
+            
+            # Для каждой линии берем две точки (начало и конец)
+            if mode == 'Isobar':
+                # Для изобары p_range это температуры
+                points.append((p_range[0], val))
+                points.append((p_range[1], val))
+            else:
+                # Для остальных это давления
+                for p_val in p_range:
+                    p_u = p_val * units.hPa
+                    try:
+                        if mode == 'Isotherm': t_point = val
+                        elif mode == 'Dry adiabat':
+                            t_point = mpcalc.dry_lapse(p_u, (val + 273.15) * units.kelvin, reference_pressure=ref_p).to('degC').m
+                        elif mode == 'Saturation Mixing Ratio':
+                            t_point = mpcalc.dewpoint(mpcalc.vapor_pressure(p_u, val * units('g/kg'))).to('degC').m
+                        elif mode == 'θe':
+                            t_point = mpcalc.moist_lapse(p_u, (val + 273.15) * units.kelvin, reference_pressure=ref_p).to('degC').m
+                        else: 
+                            print('fese11s')
+                            continue
+                        points.append((float(t_point), float(p_val)))
+                    except: 
+                        print('feses')
+                        continue
+        return points
+
+
     def __add_line(self):
         self.__line_counter += 1
         new_line = {'mode': 'None', 'val': 20.0, 'p_range': (100, 1050), 'name': f"[{self.__line_counter:02d}] None"}
@@ -166,57 +242,6 @@ class AtmosphericExample01:
         if r_slider:
             r_slider.blockSignals(True); r_slider.setValue(data['p_range']); r_slider.blockSignals(False)
             print('__on_line_selected = ', data['p_range'])
-        self.__draw_skewt()
-
-    def __on_mode_changed(self, button):
-        if self.__active_line_index < 0: return
-        mode = button.text()
-        self.__lines_data[self.__active_line_index]['mode'] = mode
-        
-        # Обновляем имя в списке с проверкой существования элемента
-        item = self.__list_widget.item(self.__active_line_index)
-        if item:
-            prefix = item.text().split(']')[0] + ']'
-            item.setText(f"{prefix} {mode}")
-        
-        # Обновляем лимиты слайдеров (с блокировкой сигналов внутри)
-        self.__update_slider_limits()
-        
-        # Принудительно вызываем обновление параметров для нового режима
-        slider = self.tabAtr("Surface Temp slider")
-        if slider:
-            self.__on_param_changed(slider.value())
-        else:
-            self.__draw_skewt()
-
-    def __on_param_changed(self, val):
-        if self.__active_line_index < 0: return
-        mode = self.__lines_data[self.__active_line_index]['mode']
-        if mode == 'Saturation Mixing Ratio': actual_val = 10**(-4 + (val/10000.0) * (np.log10(50) - (-4)))
-        elif mode == 'Isobar': actual_val = float(val*5)
-        elif mode in ['Dry adiabat', 'θe']: actual_val = val / 10.0
-        else: actual_val = float(val)
-        self.__lines_data[self.__active_line_index]['val'] = actual_val
-        
-        label = self.tabAtr("Surface Temp Slider Label")
-        if label:
-            if mode == 'Saturation Mixing Ratio': label.setText(f"{actual_val:.4f} g/kg")
-            elif mode == 'Isobar': label.setText(f"{actual_val:.0f} hPa")
-            elif mode in ['Dry adiabat', 'θe']: label.setText(f"{actual_val:.1f} °C")
-            else: label.setText(str(actual_val))
-        self.__draw_skewt()
-
-    def __on_pressure_changed(self, val):
-        if self.__active_line_index < 0: return
-        mode = self.__lines_data[self.__active_line_index]['mode']
-        step = 5
-        if mode == 'Isobar': step = 1
-        self.__lines_data[self.__active_line_index]['p_range'] = [val[0] * step, val[1] * step]
-        label = self.tabAtr("Pressure Range Slider Label")
-        if label:
-            unit = "°C" if mode == "Isobar" else "hPa"
-            label.setText(f"{val[0] * step} - {val[1] * step} {unit}")
-            print('__on_pressure_changed = ', val)
         self.__draw_skewt()
 
     def __on_background_line_width_changed(self, val):
@@ -425,7 +450,7 @@ class AtmosphericExample01:
             p_min, p_max = data['p_range']
             p_line = np.linspace(p_max, p_min, 100) * units.hPa
             val = data['val']
-            print('__draw_analytical_lines = ', val)
+            # print('__draw_analytical_lines = ', val)
             try:
                 if mode == 'Isotherm': t_line = np.full_like(p_line.m, val) * units.degC; color = "#F33232"
                 elif mode == 'Dry adiabat': t_line = mpcalc.dry_lapse(p_line, (val + 273.15) * units.kelvin, reference_pressure=ref_p); color = "orange"
@@ -456,3 +481,175 @@ class AtmosphericExample01:
                         sc = self.__ax_skew.scatter(t_point, p_val, facecolor='white', edgecolor='#333333', linewidth=2.2, s=85, zorder=35)
                         self.__analytical_line_objs.append(sc)
             except: continue
+
+    #############################################################
+
+    def __check_snapping(self, t, p, is_p_range=False, range_index=0):
+        """
+        Проверяет близость точки (t, p) к точкам притяжения.
+        Если близко (<15px), возвращает (snapped_t, snapped_p, found).
+        """
+        # if not hasattr(self, '__ax_skew'): 
+        #     print('no scew t')
+        #     return t, p, False
+        
+        snap_points = self.__get_all_snap_points()
+        if not snap_points: return t, p, False
+        
+        # Переводим текущую точку в пиксели
+        pos_px = self.__ax_skew.transData.transform((t, p))
+        
+        min_dist = 15.0 # Порог притяжения в пикселях
+        best_snap = None
+        
+        for sp in snap_points:
+            sp_px = self.__ax_skew.transData.transform(sp)
+            dist = np.sqrt((pos_px[0] - sp_px[0])**2 + (pos_px[1] - sp_px[1])**2)
+            if dist < min_dist:
+                min_dist = dist
+                best_snap = sp
+                print('snap')
+        
+        if best_snap:
+            return best_snap[0], best_snap[1], True
+        return t, p, False
+
+    def __on_param_changed(self, val):
+        if self.__active_line_index < 0: return
+        data = self.__lines_data[self.__active_line_index]
+        mode = data['mode']
+        
+        # 1. Получаем текущее значение из слайдера
+        if mode == 'Saturation Mixing Ratio': actual_val = 10**(-4 + (val/10000.0) * (np.log10(50) - (-4)))
+        elif mode == 'Isobar': actual_val = float(val*5)
+        elif mode in ['Dry adiabat', 'θe']: actual_val = val / 10.0
+        else: actual_val = float(val)
+        
+        # 2. Проверка притяжения (Snapping)
+        p_min, p_max = data['p_range']
+        ref_p = 1000 * units.hPa
+        found_snap = False
+        
+        # Проверяем оба конца линии на притяжение
+        for p_test in [p_min, p_max]:
+            try:
+                if mode == 'Isotherm': t_test = actual_val
+                elif mode == 'Isobar': t_test = p_test; p_test = actual_val # Для изобары p_range - это T
+                elif mode == 'Dry adiabat': t_test = mpcalc.dry_lapse(p_test * units.hPa, (actual_val + 273.15) * units.kelvin, reference_pressure=ref_p).to('degC').m
+                elif mode == 'Saturation Mixing Ratio': t_test = mpcalc.dewpoint(mpcalc.vapor_pressure(p_test * units.hPa, actual_val * units('g/kg'))).to('degC').m
+                elif mode == 'θe': t_test = mpcalc.moist_lapse(p_test * units.hPa, (actual_val + 273.15) * units.kelvin, reference_pressure=ref_p).to('degC').m
+                else: 
+                    
+                    continue
+
+                
+                snapped_t, snapped_p, found = self.__check_snapping(float(t_test), float(p_test))
+                if found:
+                    print('snap1')
+                    actual_val = self.__calculate_val_for_point(mode, snapped_t, snapped_p)
+                    found_snap = True
+                    break
+            except: 
+                print('snap2')
+                continue
+
+        # 3. Обновляем данные и UI
+        data['val'] = actual_val
+        if found_snap:
+            slider = self.tabAtr("Surface Temp slider")
+            if slider:
+                slider.blockSignals(True)
+                if mode == 'Saturation Mixing Ratio':
+                    log_val = (np.log10(max(1e-6, actual_val)) - (-4)) / (np.log10(50) - (-4)) * 10000.0
+                    slider.setValue(int(log_val))
+                elif mode in ['Dry adiabat', 'θe']: slider.setValue(int(actual_val * 10))
+                elif mode == 'Isobar': slider.setValue(int(actual_val / 5))
+                else: slider.setValue(int(actual_val))
+                slider.blockSignals(False)
+
+        label = self.tabAtr("Surface Temp Slider Label")
+        if label:
+            if mode == 'Saturation Mixing Ratio': label.setText(f"{actual_val:.4f} g/kg")
+            elif mode == 'Isobar': label.setText(f"{actual_val:.0f} hPa")
+            elif mode in ['Dry adiabat', 'θe']: label.setText(f"{actual_val:.1f} °C")
+            else: label.setText(str(actual_val))
+        self.__draw_skewt()
+
+    def __on_pressure_changed(self, val):
+        if self.__active_line_index < 0: return
+        data = self.__lines_data[self.__active_line_index]
+        mode = data['mode']
+        step = 5
+        if mode == 'Isobar': step = 1
+        
+        p_range = [float(val[0] * step), float(val[1] * step)]
+        actual_val = data['val']
+        ref_p = 1000 * units.hPa
+        found_snap = False
+        
+        # Проверяем оба конца изменяемого диапазона на притяжение
+        for i in [0, 1]:
+            p_test = p_range[i]
+            try:
+                if mode == 'Isotherm': t_test = actual_val
+                elif mode == 'Isobar': t_test = p_test; p_test = actual_val
+                elif mode == 'Dry adiabat': t_test = mpcalc.dry_lapse(p_test * units.hPa, (actual_val + 273.15) * units.kelvin, reference_pressure=ref_p).to('degC').m
+                elif mode == 'Saturation Mixing Ratio': t_test = mpcalc.dewpoint(mpcalc.vapor_pressure(p_test * units.hPa, actual_val * units('g/kg'))).to('degC').m
+                elif mode == 'θe': t_test = mpcalc.moist_lapse(p_test * units.hPa, (actual_val + 273.15) * units.kelvin, reference_pressure=ref_p).to('degC').m
+                else: 
+                    print('snap3')
+                    continue
+
+                
+                snapped_t, snapped_p, found = self.__check_snapping(float(t_test), float(p_test))
+                if found:
+                    print('snap66')
+                    # Примагничиваем соответствующую границу (давление или температуру для изобары)
+                    if mode == 'Isobar': p_range[i] = snapped_t
+                    else: p_range[i] = snapped_p
+                    found_snap = True
+            except: 
+                print('snap4')
+                continue
+
+
+        data['p_range'] = p_range
+        if found_snap:
+            print('snap77')
+            # Синхронизируем RangeSlider
+            r_slider = self.tabAtr("Pressure Range slider")
+            if r_slider:
+                r_slider.blockSignals(True)
+                r_slider.setValue((int(p_range[0]/step), int(p_range[1]/step)))
+                r_slider.blockSignals(False)
+
+        label = self.tabAtr("Pressure Range Slider Label")
+        if label:
+            unit = "°C" if mode == "Isobar" else "hPa"
+            label.setText(f"{p_range[0]:.1f} - {p_range[1]:.1f} {unit}")
+        self.__draw_skewt()
+
+    def __on_mode_changed(self, button):
+        if self.__active_line_index < 0: return
+        mode = button.text()
+        self.__lines_data[self.__active_line_index]['mode'] = mode
+        
+        # Обновляем имя в списке с проверкой существования элемента
+        item = self.__list_widget.item(self.__active_line_index)
+        if item:
+            prefix = item.text().split(']')[0] + ']'
+            item.setText(f"{prefix} {mode}")
+        
+        # Обновляем лимиты слайдеров (с блокировкой сигналов внутри)
+        self.__update_slider_limits()
+        
+        # Принудительно вызываем обновление параметров для нового режима
+        slider = self.tabAtr("Surface Temp slider")
+        if slider:
+            self.__on_param_changed(slider.value())
+        else:
+            self.__draw_skewt()
+
+    ##############################################################
+
+
