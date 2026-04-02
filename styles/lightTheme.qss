@@ -64,9 +64,7 @@ QSlider::groove:horizontal {
 }
 
 QSlider::handle:horizontal { 
-
     background: CornflowerBlue;         
-  
 	border: 2px solid CornflowerBlue; 
 	width: 16px; 
 	height: 20px; 
@@ -76,18 +74,19 @@ QSlider::handle:horizontal {
 	border-radius: 10px; 
 }
 
+QSlider::handle:horizontal:hover { 
+    background: #7aa1e6;
+	border: 2px solid #7aa1e6;
+}
+
 QSlider::handle:horizontal[active="false"] { 
     background: #808080; 
     border: 2px solid #808080; 
 }
 
-QRangeSlider::handle:horizontal[active="false"] { 
-    background: #808080; 
-    border: 2px solid #808080; 
-}
-
-QSlider::handle:horizontal:hover { 
-	border-radius: 10px;
+QSlider::handle:horizontal[active="false"]:hover { 
+    background: #999999; 
+    border: 2px solid #999999; 
 }
 
 QLabel {

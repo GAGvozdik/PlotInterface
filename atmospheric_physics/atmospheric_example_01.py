@@ -41,7 +41,9 @@ class AtmosphericExample01:
             func=self.__on_background_line_width_changed,
             name='Background LineWidth', 
             tab=self.__tab2,
-            label=True
+            label=True,
+            isTicks=True,
+            ticksInterval=0.1
         )
 
         vs_box = self.createSlider(

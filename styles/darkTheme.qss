@@ -79,6 +79,21 @@ QSlider::handle:horizontal {
 	border-radius: 10px; 
 }
 
+QSlider::handle:horizontal:hover { 
+    background: #7aa1e6;
+	border: 2px solid #7aa1e6;
+}
+
+QSlider::handle:horizontal[active="false"] { 
+    background: #555555; 
+    border: 2px solid #555555; 
+}
+
+QSlider::handle:horizontal[active="false"]:hover { 
+    background: #666666; 
+    border: 2px solid #666666; 
+}
+
 QRangeSlider::handle:horizontal[active="false"] { 
     background: #555555; 
     border: 2px solid #555555; 

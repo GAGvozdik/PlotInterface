@@ -28,17 +28,24 @@ class TickSlider(QSlider):
         self.update()
 
     def paintEvent(self, event):
+        # 1. Рисуем стандартный слайдер (groove и handle) согласно QSS
         super().paintEvent(event)
+        
         if self.tickPosition() == QSlider.NoTicks:
             return
 
+        # 2. Рисуем кастомные деления
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
-        pen = QPen(self._ticks_color, 2)
-        painter.setPen(pen)
+        
+        # Учитываем состояние активности
+        color = self._ticks_color if self.isEnabled() else QColor("#555555")
+        painter.setPen(QPen(color, 2))
 
         opt = QStyleOptionSlider()
         self.initStyleOption(opt)
+        
+        # Получаем геометрию дорожки и ручки для точного позиционирования
         gr = self.style().subControlRect(QStyle.CC_Slider, opt, QStyle.SC_SliderGroove, self)
         handle = self.style().subControlRect(QStyle.CC_Slider, opt, QStyle.SC_SliderHandle, self)
 
@@ -48,15 +55,19 @@ class TickSlider(QSlider):
         min_v, max_v = self.minimum(), self.maximum()
         if max_v <= min_v: return
 
-        # Центрирование делений относительно дорожки
+        # Центрируем деления по вертикали относительно дорожки
+        center_y = gr.center().y()
+        # Вычисляем эффективную ширину перемещения (между центрами крайних положений ручки)
+        margin = handle.width() // 2
+        eff_width = self.width() - 2 * margin
+
         for i in range(min_v, max_v + 1, interval):
             ratio = (i - min_v) / (max_v - min_v)
-            # Учитываем, что центр ручки смещается от края до края
-            x = gr.left() + handle.width()//2 + ratio * (gr.width() - handle.width())
+            x = margin + ratio * eff_width
             
-            # Рисуем деления сверху и снизу
-            painter.drawLine(int(x), gr.top() - 5, int(x), gr.top() - 12)
-            painter.drawLine(int(x), gr.bottom() + 5, int(x), gr.bottom() + 12)
+            # Рисуем деления сверху и снизу от дорожки (пропуская саму дорожку 10px)
+            painter.drawLine(int(x), center_y - 15, int(x), center_y - 6)
+            painter.drawLine(int(x), center_y + 6, int(x), center_y + 15)
         
         painter.end()
 
