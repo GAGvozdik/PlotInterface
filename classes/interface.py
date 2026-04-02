@@ -22,6 +22,7 @@ class TickSlider(QSlider):
     def __init__(self, orientation, parent=None):
         super().__init__(orientation, parent)
         self._ticks_color = QColor("#AAAAAA") 
+        self.setAttribute(Qt.WA_StyledBackground, True)
 
     def setTicksColor(self, color_str):
         self._ticks_color = QColor(color_str)
@@ -65,6 +66,10 @@ class TickSlider(QSlider):
             ratio = (i - min_v) / (max_v - min_v)
             x = margin + ratio * eff_width
             
+            # Пропускаем отрисовку деления, если оно находится под ползунком
+            if handle.left() - 2 <= x <= handle.right() + 2:
+                continue
+
             # Рисуем деления сверху и снизу от дорожки (пропуская саму дорожку 10px)
             painter.drawLine(int(x), center_y - 15, int(x), center_y - 6)
             painter.drawLine(int(x), center_y + 6, int(x), center_y + 15)
@@ -74,6 +79,9 @@ class TickSlider(QSlider):
 class PlotInterface(GraphObjects):
     def __init__(self):
         super().__init__()  
+
+        # Принудительно устанавливаем стиль Fusion для стабильности UI
+        QApplication.setStyle(QStyleFactory.create("Fusion"))
 
         # Защита от повторной инициализации при динамической смене режимов
         if hasattr(self, '_setup_done') and self._setup_done:

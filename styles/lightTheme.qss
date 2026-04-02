@@ -64,8 +64,8 @@ QSlider::groove:horizontal {
 }
 
 QSlider::handle:horizontal { 
-    background: CornflowerBlue;         
-	border: 2px solid CornflowerBlue; 
+    background-color: #6495ED; 
+	border: 2px solid #6495ED; 
 	width: 16px; 
 	height: 20px; 
 	line-height: 20px; 
@@ -75,17 +75,17 @@ QSlider::handle:horizontal {
 }
 
 QSlider::handle:horizontal:hover { 
-    background: #7aa1e6;
+    background-color: #7aa1e6;
 	border: 2px solid #7aa1e6;
 }
 
 QSlider::handle:horizontal[active="false"] { 
-    background: #808080; 
+    background-color: #808080; 
     border: 2px solid #808080; 
 }
 
 QSlider::handle:horizontal[active="false"]:hover { 
-    background: #999999; 
+    background-color: #999999; 
     border: 2px solid #999999; 
 }
 
@@ -140,35 +140,25 @@ QTabBar::tab:selected {
 
 
 QRadioButton {
-    spacing: 8px;
-    font-size: 22px;
+    spacing: 10px;
+    font-size: 20px;
     color: rgb(39, 39, 39);
-    padding: 5px;
+    padding: 2px;
 }
 
-/* Кнопка — кружок */
 QRadioButton::indicator {
     width: 20px;
     height: 20px;
-    border-radius: 12px;
-    border: 3px solid rgb(163, 163, 163);
-    background-color: rgb(214, 214, 214);
 }
 
-/* Наведение мыши */
-QRadioButton::indicator:hover {
-    border: 3px solid rgb(26, 83, 149); /* акцент как SinePlot */
+QRadioButton::indicator:unchecked {
+    image: url(styles/radio_unchecked.png);
 }
 
-/* Активное состояние (отмечено) */
 QRadioButton::indicator:checked {
-    background-color: rgb(26, 83, 149);
-    border: 3px solid rgb(26, 83, 149);
+    image: url(styles/radio_hovered.png);
 }
 
-/* Отключено */
-QRadioButton::indicator:disabled {
-    background-color: rgb(180, 180, 180);
-    border: 3px solid rgb(163, 163, 163);
+QRadioButton::indicator:hover {
+    image: url(styles/radio_checked.png);
 }
-
