@@ -238,9 +238,9 @@ class PlotInterface(GraphObjects):
             self.dividerColor = '#FFFFFF'   
             self.windowColor = self.dividerColor
             self.gridColor = 'grey'
-            self.widgetColor = 'black'
+            self.widgetColor = "#626262"
             self.graphColor = '#FFFFFF'
-            self.ticksColor = 'black'
+            self.ticksColor = '#626262'
             self.ticksWidth = 1
             self.darkMode = False
 
