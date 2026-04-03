@@ -364,7 +364,7 @@ class AtmosphericExample01:
 
         # 1. Dry
         t0_dry = np.arange(-100, 200, 10) * units.degC
-        dry_lines = self.__skew.plot_dry_adiabats(t0=t0_dry, alpha=a_dry, linestyle='-', linewidth=self.__background_line_width*2.0)
+        dry_lines = self.__skew.plot_dry_adiabats(t0=t0_dry, alpha=a_dry, linestyle='-', linewidth=self.__background_line_width*3.5 if active_mode == 'Dry adiabat' else self.__background_line_width*2.0)
         dry_lines.set_color(c_dry)
         
         for t0 in t0_dry:
@@ -384,7 +384,7 @@ class AtmosphericExample01:
 
         # 2. Moist
         t0_moist = np.arange(-100, 100, 5) * units.degC
-        moist_lines = self.__skew.plot_moist_adiabats(t0=t0_moist, alpha=a_moist, linestyle='-', linewidth=self.__background_line_width*2.0)
+        moist_lines = self.__skew.plot_moist_adiabats(t0=t0_moist, alpha=a_moist, linestyle='-', linewidth=self.__background_line_width*4 if active_mode == 'θe' else self.__background_line_width*2.0)
         moist_lines.set_color(c_moist)
         
         for t0 in t0_moist:
@@ -404,7 +404,7 @@ class AtmosphericExample01:
 
         # 3. Mix
         w_mixing = np.array([0.0001, 0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 2, 5, 10, 20, 30, 50]) * units('g/kg')
-        mix_lines = self.__skew.plot_mixing_lines(pressure=np.linspace(1050, 100, 65) * units.hPa, mixing_ratio=w_mixing, alpha=a_mix, linestyle='--', linewidth=self.__background_line_width*2.0)
+        mix_lines = self.__skew.plot_mixing_lines(pressure=np.linspace(1050, 100, 65) * units.hPa, mixing_ratio=w_mixing, alpha=a_mix, linestyle='--', linewidth=self.__background_line_width*3.5 if active_mode == 'Saturation Mixing Ratio' else self.__background_line_width*2.0)
         if mix_lines: mix_lines.set_color(c_mix)
         
         for w in w_mixing:
@@ -437,8 +437,8 @@ class AtmosphericExample01:
                     alpha=a_mix
                 )
         
-        self.__ax_skew.grid(True, axis='x', color='#AD1C1C', linewidth=self.__background_line_width*1.5, alpha=a_iso)
-        self.__ax_skew.grid(True, axis='y', color="#131313", linewidth=self.__background_line_width*1.5, alpha=a_isobar if active_mode == 'Isobar' else 0.3)
+        self.__ax_skew.grid(True, axis='x', color='#AD1C1C', linewidth=self.__background_line_width*3.0 if active_mode == 'Isotherm' else self.__background_line_width*1.5, alpha=a_iso)
+        self.__ax_skew.grid(True, axis='y', color="#131313", linewidth=self.__background_line_width*3.0 if active_mode == 'Isobar' else self.__background_line_width*1.5, alpha=a_isobar if active_mode == 'Isobar' else 0.3)
         self.__ax_skew.set_xlabel('Temperature (°C)', fontsize=20); self.__ax_skew.set_ylabel('Pressure (hPa)', fontsize=20)
 
     def __draw_analytical_lines(self):
@@ -462,7 +462,7 @@ class AtmosphericExample01:
                     color = "#242424"
                 else: continue
                 
-                lines = self.__skew.plot(p_line, t_line, color, linewidth=4.0)
+                lines = self.__skew.plot(p_line, t_line, color, linewidth=4.2 if mode == 'θe' else 3.5)
                 self.__analytical_line_objs.append(lines[0])
                 
                 if mode in ['Dry adiabat', 'Saturation Mixing Ratio', 'θe']:
